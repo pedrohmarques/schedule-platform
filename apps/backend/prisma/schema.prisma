@@ -1,0 +1,111 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Get a free hosted Postgres database in seconds: `npx create-db`
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model Address {
+  id           String  @id @default(cuid())
+  zipCode      String
+  street       String
+  number       String
+  complement   String?
+  neighborhood String
+  city         String
+  state        String
+
+  client      Client?
+  profissional Profissional?
+
+  @@index([zipCode])
+}
+
+model Client {
+  id    String @id @default(cuid())
+  name  String
+  email String @unique
+  password String
+  phone String
+  age Int
+  cpf String @unique
+
+  address   Address? @relation(fields: [addressId], references: [id])
+  addressId String?  @unique
+
+  job Job[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Profissional {
+  id    String @id @default(cuid())
+  name  String
+  email String @unique
+  password String
+  phone String
+  age Int
+  cpf String @unique
+  area String @unique
+  description String?
+
+  job JobRequest[]
+
+  address   Address? @relation(fields: [addressId], references: [id])
+  addressId String?  @unique
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+enum JobStatus {
+  OPEN        // sem profissional confirmado, disponível pra qualquer um solicitar
+  PENDING     // convite enviado a um profissional específico, aguardando resposta
+  ACCEPTED    // profissional confirmado pro job
+  CANCELLED
+  COMPLETED
+}
+
+enum RequestStatus {
+  PENDING
+  ACCEPTED
+  REJECTED
+}
+
+model Job {
+  id          String    @id @default(cuid())
+  description String
+  price       Decimal
+  status      JobStatus @default(OPEN)
+
+  client   Client @relation(fields: [clientId], references: [id])
+  clientId String 
+
+  requests JobRequest[] 
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model JobRequest {
+  id     String        @id @default(cuid())
+  status RequestStatus @default(PENDING)
+
+  job   Job    @relation(fields: [jobId], references: [id])
+  jobId String
+
+  professional   Profissional @relation(fields: [professionalId], references: [id])
+  professionalId String 
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([jobId, professionalId])    // impede o mesmo profissional solicitar o mesmo job 2x
+}
