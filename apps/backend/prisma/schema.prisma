@@ -11,8 +11,15 @@ datasource db {
   provider = "postgresql"
 }
 
-model Address {
-  id           String  @id @default(cuid())
+model Client {
+  id       String @id @default(cuid())
+  name     String
+  email    String @unique
+  password String
+  phone    String
+  age      Int
+  cpf      String @unique
+
   zipCode      String
   street       String
   number       String
@@ -21,54 +28,45 @@ model Address {
   city         String
   state        String
 
-  client      Client?
-  profissional Profissional?
-
-  @@index([zipCode])
-}
-
-model Client {
-  id    String @id @default(cuid())
-  name  String
-  email String @unique
-  password String
-  phone String
-  age Int
-  cpf String @unique
-
-  address   Address? @relation(fields: [addressId], references: [id])
-  addressId String?  @unique
-
   job Job[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+
+  @@index([zipCode])
 }
 
 model Profissional {
-  id    String @id @default(cuid())
-  name  String
-  email String @unique
-  password String
-  phone String
-  age Int
-  cpf String @unique
-  area String @unique
+  id          String  @id @default(cuid())
+  name        String
+  email       String  @unique
+  password    String
+  phone       String
+  age         Int
+  cpf         String  @unique
+  area        String  @unique
   description String?
 
   job JobRequest[]
 
-  address   Address? @relation(fields: [addressId], references: [id])
-  addressId String?  @unique
+  zipCode      String
+  street       String
+  number       String
+  complement   String?
+  neighborhood String
+  city         String
+  state        String
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+
+  @@index([zipCode])
 }
 
 enum JobStatus {
-  OPEN        // sem profissional confirmado, disponível pra qualquer um solicitar
-  PENDING     // convite enviado a um profissional específico, aguardando resposta
-  ACCEPTED    // profissional confirmado pro job
+  OPEN // sem profissional confirmado, disponível pra qualquer um solicitar
+  PENDING // convite enviado a um profissional específico, aguardando resposta
+  ACCEPTED // profissional confirmado pro job
   CANCELLED
   COMPLETED
 }
@@ -86,9 +84,9 @@ model Job {
   status      JobStatus @default(OPEN)
 
   client   Client @relation(fields: [clientId], references: [id])
-  clientId String 
+  clientId String
 
-  requests JobRequest[] 
+  requests JobRequest[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -102,10 +100,10 @@ model JobRequest {
   jobId String
 
   professional   Profissional @relation(fields: [professionalId], references: [id])
-  professionalId String 
+  professionalId String
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  @@unique([jobId, professionalId])    // impede o mesmo profissional solicitar o mesmo job 2x
+  @@unique([jobId, professionalId]) // impede o mesmo profissional solicitar o mesmo job 2x
 }
