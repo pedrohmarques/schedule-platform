@@ -1,18 +1,26 @@
+import { CalendarClock } from "lucide-react";
+import LoginPage from "./(auth)/login/page";
+
 export default function Home() {
   return (
-    <div className="flex flex-1 flex-col items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex w-full max-w-xl flex-col items-center gap-4 px-6 text-center">
-        <h1 className="text-3xl font-semibold tracking-tight text-black dark:text-zinc-50">
-          Schedule Platform
-        </h1>
-        <p className="text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-          Frontend em Next.js pronto para consumir a API em{' '}
-          <code className="rounded bg-black/[.06] px-1.5 py-0.5 font-mono text-[0.9em] dark:bg-white/[.08]">
-            src/lib/api.ts
-          </code>
-          .
-        </p>
-      </main>
+    <div className="flex flex-1 font-sans bg-[var(--background)]">
+      <div className="hidden flex flex-col flex-1 justify-between font-sans bg-[var(--primary)] py-12 px-12 lg:flex">
+          <span className="flex items-center gap-2 font-display text-lg font-semibold tracking-tight text-[var(--primary-foreground)]">
+            <CalendarClock size={24}/> Horalis
+          </span>
+          <div className=" flex flex-1 flex-col justify-center font-sans max-w-md">
+            <p className="text-4xl font-semibold leading-tight text-[var(--primary-foreground)]">
+              Agenda organizada, acordos claros.
+            </p>
+            <p className="mt-4 text-sm leading-relaxed text-[var(--primary-foreground)]/80">
+              Clientes propõem serviço, valor e horário. Profissionais aceitam ou recusam em um clique. Sem mensagens perdidas, sem confusão de horário.
+            </p>
+          </div>
+      </div>
+
+      <div className="flex flex-1 justify-center items-center font-sans bg-[var(--background)] px-6 py-12">
+        <LoginPage />
+      </div>
     </div>
   );
 }
