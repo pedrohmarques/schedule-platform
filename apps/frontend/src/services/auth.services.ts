@@ -1,7 +1,10 @@
 import { api } from '@/lib/api';
+import { Client } from '@/types/Client';
+import { Professional } from '@/types/Professional';
 
 interface LoginResponse {
   access_token: string;
+  profile: Client | Professional
 }
 
 export function loginClient(email: string, password: string) {

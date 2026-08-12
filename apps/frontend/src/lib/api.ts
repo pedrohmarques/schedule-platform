@@ -10,18 +10,28 @@ export class ApiError extends Error {
   }
 }
 
+function getTokenFromCookie(): string | null {
+  if (typeof document === 'undefined') return null; // SSR guard - sem cookie no servidor
+  const match = document.cookie.match(/(?:^|;\s*)token=([^;]*)/);
+  return match ? decodeURIComponent(match[1]) : null;
+}
+
 /**
  * Cliente HTTP fino para consumir a API do backend (NestJS).
- * Uso: await api<Usuario[]>('/users')
+ * Anexa automaticamente o token JWT (do cookie) como Authorization header,
+ * quando existir. Uso: await api<Usuario[]>('/users')
  */
 export async function api<T>(
   path: string,
   init?: RequestInit,
 ): Promise<T> {
+  const token = getTokenFromCookie();
+
   const res = await fetch(`${API_URL}${path}`, {
     ...init,
     headers: {
       'Content-Type': 'application/json',
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
       ...init?.headers,
     },
   });

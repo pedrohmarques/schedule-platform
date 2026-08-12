@@ -34,10 +34,24 @@
   --sidebar-accent-foreground: oklch(0.32 0.04 168);
   --sidebar-border: oklch(0.9 0.012 120);
   --sidebar-ring: oklch(0.46 0.088 168);
+
+  --radius-xl: calc(var(--radius) + 4px);
+  --shadow-soft: 0 1px 2px oklch(30% .03 165/.06), 0 12px 32px -18px oklch(30% .03 165/.3);
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
+}
+
+.surface-card {
+  background-color: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-xl);
+  box-shadow: var(--shadow-soft);
+}
+
+.border-transparent {
+  border-color: #0000;
 }

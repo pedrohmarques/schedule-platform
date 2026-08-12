@@ -13,15 +13,24 @@ export class JobService {
     constructor(private readonly prisma: PrismaService) {}
 
     /**
+     * Prisma retorna `price` (Decimal) como um objeto interno ({s, e, d}),
+     * não como number puro — isso quebra o front (`Number({s,e,d})` = NaN).
+     * Convertemos pra number antes de devolver pra API.
+     */
+    private toPlainJob<T extends { price: unknown }>(job: T): T & { price: number } {
+        return { ...job, price: Number(job.price) };
+    }
+
+    /**
      * Sem professionalId -> job fica OPEN, disponível pra qualquer profissional
      * solicitar (ver requestJob). Com professionalId -> o cliente já está
      * convidando alguém específico, então cria o job + o JobRequest juntos,
      * como PENDING (aguardando esse profissional aceitar/recusar).
      */
-    create(dto: CreateJobDto, clientId: string) {
+    async create(dto: CreateJobDto, clientId: string) {
         const { professionalId, ...jobData } = dto;
 
-        return this.prisma.job.create({
+        const job = await this.prisma.job.create({
             data: {
                 ...jobData,
                 clientId,
@@ -32,22 +41,31 @@ export class JobService {
             },
             include: { requests: true },
         });
+
+        return this.toPlainJob(job);
     }
 
-    findAllRequestsByProfessional(professionalId: string) {
-        return this.prisma.jobRequest.findMany({
+    async findAllRequestsByProfessional(professionalId: string) {
+        const requests = await this.prisma.jobRequest.findMany({
             where: { professionalId },
             orderBy: { createdAt: "desc" },
             include: { job: true },
         });
+
+        return requests.map((request) => ({
+            ...request,
+            job: this.toPlainJob(request.job),
+        }));
     }
 
-    findAllByClient(clientId: string) {
-        return this.prisma.job.findMany({
+    async findAllByClient(clientId: string) {
+        const jobs = await this.prisma.job.findMany({
             where: { clientId },
             orderBy: { createdAt: "desc" },
             include: { requests: true },
         });
+
+        return jobs.map((job) => this.toPlainJob(job));
     }
 
     /** Um profissional solicitando um job em aberto (que não tem alvo definido). */
@@ -101,7 +119,7 @@ export class JobService {
             }),
         ]);
 
-        return job;
+        return this.toPlainJob(job);
     }
 
     /**
@@ -150,7 +168,7 @@ export class JobService {
             }),
         ]);
 
-        return job;
+        return this.toPlainJob(job);
     }
 
     /** Cliente ou o profissional confirmado marcam o job como concluído. */
@@ -176,9 +194,11 @@ export class JobService {
             throw new ForbiddenException("Você não faz parte desse job.");
         }
 
-        return this.prisma.job.update({
+        const updated = await this.prisma.job.update({
             where: { id: jobId },
             data: { status: "COMPLETED" },
         });
+
+        return this.toPlainJob(updated);
     }
 }

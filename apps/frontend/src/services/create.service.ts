@@ -1,8 +1,8 @@
 import { api } from '@/lib/api';
 import { Client } from '@/types/Client';
-import { Profissional } from '@/types/Profissional';
+import { Professional } from '@/types/Professional';
 
-interface ProfissionalData {
+interface ProfessionalData {
     name: string;
     email: string;
     phone: string;
@@ -41,8 +41,8 @@ export function createClient(cliData: ClientData) {
   });
 }
 
-export function createProf(proData: ProfissionalData) {
-  return api<Profissional>('/profissional', {
+export function createProf(proData: ProfessionalData) {
+  return api<Professional>('/profissional', {
     method: 'POST',
     body: JSON.stringify(proData),
   });

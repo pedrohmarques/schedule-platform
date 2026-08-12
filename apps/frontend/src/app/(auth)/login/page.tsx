@@ -26,10 +26,11 @@ export default function LoginPage() {
     e.preventDefault();
     try {
       const login = role === 'client' ? loginClient : loginProf;
-      const { access_token } = await login(email, password);
+      const { access_token, profile } = await login(email, password);
       document.cookie = `token=${access_token}; path=/`;
+      sessionStorage.setItem("user", JSON.stringify(profile))
       toast.success('Login realizado com sucesso!');
-      router.push('/dashboard');
+      router.push(`/dashboard/${role}`);
     } catch {
       toast.error('Email ou senha inválidos.');
     }
