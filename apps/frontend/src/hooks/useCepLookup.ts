@@ -8,12 +8,6 @@ interface UseCepLookupResult {
   loading: boolean;
   error: string | null;
 }
-
-/**
- * Watches a (possibly masked) CEP value and automatically looks up the
- * address once it reaches 8 digits. Re-fires only when the digits actually
- * change, and ignores stale responses if the CEP changes again mid-request.
- */
 export function useCepLookup(zipCode: string): UseCepLookupResult {
   const [address, setAddress] = useState<CepAddress | null>(null);
   const [loading, setLoading] = useState(false);

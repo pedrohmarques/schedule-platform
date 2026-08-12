@@ -1,0 +1,18 @@
+export const SERVICE_AREAS = [
+  { label: "Barbearia", value: "barbearia" },
+  { label: "Cabeleireiro(a)", value: "cabeleireiro" },
+  { label: "Manicure e Pedicure", value: "manicure-pedicure" },
+  { label: "Estética Facial", value: "estetica-facial" },
+  { label: "Estética Corporal", value: "estetica-corporal" },
+  { label: "Depilação", value: "depilacao" },
+  { label: "Maquiagem", value: "maquiagem" },
+  { label: "Design de Sobrancelhas", value: "design-sobrancelhas" },
+  { label: "Massoterapia", value: "massoterapia" },
+  { label: "Fisioterapia", value: "fisioterapia" },
+  { label: "Personal Trainer", value: "personal-trainer" },
+  { label: "Nutrição", value: "nutricao" },
+  { label: "Psicologia", value: "psicologia" },
+  { label: "Odontologia", value: "odontologia" },
+  { label: "Podologia", value: "podologia" },
+  { label: "Tatuagem", value: "tatuagem" },
+] as const;

@@ -8,6 +8,9 @@ import { useCepLookup } from "@/hooks/useCepLookup";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
+import Select from "@/components/ui/Select";
+import { BRAZILIAN_STATES } from "@/constants/states";
+import { SERVICE_AREAS } from "@/constants/areas";
 
 export default function ProfissionalForm() {
     const router = useRouter()
@@ -98,12 +101,24 @@ export default function ProfissionalForm() {
 
                 <div className="grid gap-4 sm:grid-cols-2">
                     <Input label="Cidade" name="city" type="text" placeholder="São Paulo" value={city} onChange={(e) => setCity(e.target.value)} />
-                    <Input label="Estado" name="state" type="text" placeholder="SP" value={state} onChange={(e) => setState(e.target.value)} />
+                    <Select
+                        label="Estado"
+                        name="state"
+                        value={state}
+                        onChange={(value) => setState(value)}
+                        options={[...BRAZILIAN_STATES]}
+                    />
                 </div>
 
                 <Input label="Complemento" name="complement" type="text" placeholder="Apto 101" value={complement} onChange={(e) => setComplement(e.target.value)} />
 
-                <Input label="Area" name="area" type="text" value={area} onChange={(e) => setArea(e.target.value)} />
+                <Select
+                    label="Área"
+                    name="area"
+                    value={area}
+                    onChange={(value) => setArea(value)}
+                    options={[...SERVICE_AREAS]}
+                />
 
                 <Input label="Descrição" name="description" type="text" value={description} onChange={(e) => setDescription(e.target.value)} />
                 
