@@ -12,6 +12,7 @@ import { ClientModule } from './modules/client/client.module';
 import { AuthModule } from './modules/auth/auth.module';
 import { JwtAuthGuard } from './common/guards/jwt-auth.guard';
 import { ProfissionalModule } from './modules/profissional/profissional.module';
+import { JobModule } from './modules/job/job.module';
 
 @Module({
   imports: [
@@ -25,8 +26,8 @@ import { ProfissionalModule } from './modules/profissional/profissional.module';
     HealthModule,
     AuthModule,
     ClientModule,
-    ProfissionalModule
-    
+    ProfissionalModule,
+    JobModule
   ],
   providers: [
     {

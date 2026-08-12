@@ -1,10 +1,7 @@
 "use client";
 
-import { InputHTMLAttributes } from "react";
+import { InputHTMLAttributes, useState } from "react";
 import { IMaskInput } from "react-imask";
-import { XCircle } from "lucide-react";
-import { useValidation } from "@/hooks/useValidation";
-import { combine, digitsLength, required } from "@/lib/validators";
 
 type MaskedFieldVariant = "phone" | "cep";
 
@@ -15,7 +12,6 @@ interface MaskedInputProps
   variant: MaskedFieldVariant;
   value?: string;
   onChange?: (e: React.ChangeEvent<HTMLInputElement>) => void;
-  forceShow?: boolean;
 }
 
 // IMaskInput's `mask` prop is a big overloaded union in its own type
@@ -31,13 +27,13 @@ const maskConfig: Record<
     mask: [{ mask: "(00) 0000-0000" }, { mask: "(00) 00000-0000" }],
     placeholder: "(11) 91234-5678",
     expectedLengths: [10, 11],
-    errorMessage: "Telefone deve ter DDD + número. Ex: (11) 90000-0000",
+    errorMessage: "Telefone incompleto",
   },
   cep: {
     mask: "00000-000",
     placeholder: "00000-000",
     expectedLengths: [8],
-    errorMessage: "CEP inválido",
+    errorMessage: "CEP incompleto",
   },
 };
 
@@ -50,15 +46,16 @@ export default function MaskedInput({
   value,
   onChange,
   onBlur,
-  forceShow = false,
   ...props
 }: MaskedInputProps) {
   const inputId = id ?? name;
+  const [touched, setTouched] = useState(false);
   const config = maskConfig[variant];
-  const validate = combine(required(), digitsLength(config.expectedLengths, config.errorMessage));
 
   const rawValue = typeof value === "string" ? value : "";
-  const { error, isInvalid, handleBlur: markTouched } = useValidation(rawValue, validate, forceShow);
+  const digitsOnly = rawValue.replace(/\D/g, "");
+  const isIncomplete =
+    touched && digitsOnly.length > 0 && !config.expectedLengths.includes(digitsOnly.length);
 
   function handleAccept(newValue: string) {
     // IMask reports changes via onAccept(value), not a native ChangeEvent,
@@ -70,8 +67,8 @@ export default function MaskedInput({
     onChange?.(fakeEvent);
   }
 
-  function handleInputBlur(e: React.FocusEvent<HTMLInputElement>) {
-    markTouched();
+  function handleBlur(e: React.FocusEvent<HTMLInputElement>) {
+    setTouched(true);
     onBlur?.(e);
   }
 
@@ -80,29 +77,24 @@ export default function MaskedInput({
       <label htmlFor={inputId} className="text-sm font-medium text-[var(--foreground)]">
         {label}
       </label>
-      <div className="relative">
-        {isInvalid && (
-          <XCircle className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[var(--destructive)]" />
-        )}
-        <IMaskInput
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          mask={config.mask as any}
-          id={inputId}
-          name={name}
-          inputMode="numeric"
-          placeholder={config.placeholder}
-          value={rawValue}
-          onAccept={handleAccept}
-          onBlur={handleInputBlur}
-          className={`w-full rounded-[var(--radius)] border ${
-            isInvalid ? "border-[var(--destructive)]" : "border-[var(--border)]"
-          } bg-[var(--background)] py-2.5 text-sm text-[var(--foreground)] placeholder:text-[var(--muted-foreground)] outline-none transition-colors focus-visible:ring-1 focus-visible:ring-[var(--ring)] disabled:cursor-not-allowed disabled:opacity-50 ${
-            isInvalid ? "pl-9 pr-4" : "px-4"
-          } ${className ?? ""}`}
-          {...props}
-        />
-      </div>
-      {error && <span className="text-xs text-[var(--destructive)]">{error}</span>}
+      <IMaskInput
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        mask={config.mask as any}
+        id={inputId}
+        name={name}
+        inputMode="numeric"
+        placeholder={config.placeholder}
+        value={rawValue}
+        onAccept={handleAccept}
+        onBlur={handleBlur}
+        className={`w-full rounded-[var(--radius)] border ${
+          isIncomplete ? "border-[var(--destructive)]" : "border-[var(--border)]"
+        } bg-[var(--background)] px-4 py-2.5 text-sm text-[var(--foreground)] placeholder:text-[var(--muted-foreground)] outline-none transition-colors focus-visible:ring-1 focus-visible:ring-[var(--ring)] disabled:cursor-not-allowed disabled:opacity-50 ${
+          className ?? ""
+        }`}
+        {...props}
+      />
+      {isIncomplete && <span className="text-xs text-[var(--destructive)]">{config.errorMessage}</span>}
     </div>
   );
 }
