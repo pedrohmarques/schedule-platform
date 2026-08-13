@@ -1,8 +1,15 @@
+export interface JobRequestProfessional {
+    id: string;
+    name: string;
+    area: string;
+}
+
 export interface JobRequest {
     id: string;
     status: "PENDING" | "ACCEPTED" | "REJECTED";
     jobId: string;
     professionalId: string;
+    professional: JobRequestProfessional;
     createdAt: string;
     updatedAt: string;
 }
