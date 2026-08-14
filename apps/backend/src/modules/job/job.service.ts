@@ -7,6 +7,8 @@ import {
 import { PrismaService } from "src/prisma/prisma.service";
 import { CreateJobDto } from "./dto/create-job.dto";
 import { RequestAction } from "./dto/respond-job-request.dto";
+import { JobStatus, RequestStatus } from "@prisma/client";
+import { RequestJobDto } from "./dto/request-job.dto";
 
 @Injectable()
 export class JobService {
@@ -36,7 +38,7 @@ export class JobService {
                 clientId,
                 status: professionalId ? "PENDING" : "OPEN",
                 requests: professionalId
-                    ? { create: [{ professionalId }] }
+                    ? { create: [{ professionalId, price: jobData.price, description: jobData.description }] }
                     : undefined,
             },
             include: { requests: true },
@@ -45,11 +47,17 @@ export class JobService {
         return this.toPlainJob(job);
     }
 
-    async findAllRequestsByProfessional(professionalId: string) {
+    async findAllRequestsByProfessional(professionalId: string, statuses?: RequestStatus[]) {
         const requests = await this.prisma.jobRequest.findMany({
-            where: { professionalId },
+            where: { 
+                professionalId,
+                ...(statuses && statuses.length > 0 ? { status: { in: statuses } } : {}),
+            },
             orderBy: { createdAt: "desc" },
-            include: { job: true },
+            include: { job:  {
+                    include: { client: { select: {id: true, name: true} }}
+                } 
+            },
         });
 
         return requests.map((request) => ({
@@ -58,18 +66,34 @@ export class JobService {
         }));
     }
 
-    async findAllByClient(clientId: string) {
+    async findAllByClient(clientId: string, statuses?: JobStatus[]) {
         const jobs = await this.prisma.job.findMany({
-            where: { clientId },
+            where: {
+                clientId,
+                ...(statuses && statuses.length > 0 ? { status: { in: statuses } } : {}),
+            },
             orderBy: { createdAt: "desc" },
-            include: { requests: true },
+            include: {
+                // join de 2 níveis: Job -> requests (JobRequest) -> professional (Profissional)
+                requests: {
+                    include: {
+                        // select, não "professional: true" -> senão viria o hash da senha junto
+                        professional: {
+                            select: { id: true, name: true, area: true },
+                        },
+                    },
+                },
+            },
         });
 
-        return jobs.map((job) => this.toPlainJob(job));
+        return jobs.map((job) => ({
+            ...this.toPlainJob(job),
+            requests: job.requests.map((request) => this.toPlainJob(request)),
+        }));
     }
 
     /** Um profissional solicitando um job em aberto (que não tem alvo definido). */
-    async requestJob(jobId: string, professionalId: string) {
+    async requestJob(jobId: string, dto: RequestJobDto, professionalId: string) {
         const job = await this.prisma.job.findUnique({ where: { id: jobId } });
 
         if (!job) {
@@ -80,9 +104,11 @@ export class JobService {
             throw new BadRequestException("Esse job não está mais disponível para solicitação.");
         }
 
-        return this.prisma.jobRequest.create({
-            data: { jobId, professionalId },
+        const request = await this.prisma.jobRequest.create({
+            data: { jobId, professionalId, price: dto?.price || job.price, description: dto.description },
         });
+
+        return this.toPlainJob(request);
     }
 
     /**
@@ -164,7 +190,7 @@ export class JobService {
             }),
             this.prisma.job.update({
                 where: { id: jobRequest.jobId },
-                data: { status: "ACCEPTED" },
+                data: { status: "ACCEPTED", price: jobRequest.price },
             }),
         ]);
 

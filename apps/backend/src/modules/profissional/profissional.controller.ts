@@ -6,6 +6,7 @@ import {
     Param,
     Patch,
     Delete,
+    Query,
 } from '@nestjs/common';
 import { Public } from 'src/common/decorators/public.decorator';
 import { ProfissionalService } from './profissional.service';
@@ -13,13 +14,13 @@ import { ProfissionalEntity } from './entities/profissional.entity';
 import { CreateProfissionalDto } from './dto/create-profissional.dto';
 import { UpdateProfissionalDto } from './dto/update-profissional.dto';
   
-@Controller('profissional')
+@Controller('professional')
 export class ProfissionalController {
   constructor(private readonly profissionalService: ProfissionalService) {}
 
   @Get()
-  async findAll() {
-    const profissionals = await this.profissionalService.findAll();
+  async findAll(@Query('area') area?: string) {
+    const profissionals = await this.profissionalService.findAll(area);
     return profissionals.map(c => new ProfissionalEntity(c))
   }
 

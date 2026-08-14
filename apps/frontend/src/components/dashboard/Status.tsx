@@ -1,4 +1,4 @@
-type StatusType = "OPEN" | "PENDING" | "ACCEPTED" | "CANCELLED" | "COMPLETED"
+type StatusType = "OPEN" | "PENDING" | "ACCEPTED" | "CANCELLED" | "REJECTED" | "COMPLETED"
 interface Status {
     type: StatusType
 }
@@ -8,6 +8,7 @@ const themeClasses: Record<StatusType, string> = {
     PENDING: 'bg-[var(--warning)] text-[var(--warning-foreground)]',
     ACCEPTED: 'bg-[var(--success)] text-[var(--success-foreground)]',
     CANCELLED: 'bg-[var(--destructive)] text-[var(--destructive-foreground)]',
+    REJECTED: 'bg-[var(--destructive)] text-[var(--destructive-foreground)]',
     COMPLETED: 'bg-[var(--success)] text-[var(--success-foreground)]',
 };
 
@@ -16,6 +17,7 @@ const translate = {
     PENDING: "Pendente",
     ACCEPTED: "Aceito",
     CANCELLED: "Cancelado",
+    REJECTED: "Rejeitado",
     COMPLETED: "Finalizado"
 }
 

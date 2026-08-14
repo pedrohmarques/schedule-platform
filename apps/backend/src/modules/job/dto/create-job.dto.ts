@@ -2,6 +2,12 @@ import { IsNumber, IsOptional, IsPositive, IsString } from "class-validator";
 
 export class CreateJobDto {
     @IsString()
+    area!: string;
+
+    @IsString()
+    title!: string;
+
+    @IsString()
     description!: string;
 
     @IsNumber()

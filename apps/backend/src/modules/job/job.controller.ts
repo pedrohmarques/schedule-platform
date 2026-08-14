@@ -1,8 +1,11 @@
-import { Body, Controller, Get, Param, Patch, Post } from "@nestjs/common";
+import { Body, Controller, Get, Param, Patch, Post, Query } from "@nestjs/common";
 import { CreateJobDto } from "./dto/create-job.dto";
 import { JobService } from "./job.service";
 import { CurrentUser, type CurrentUserPayload } from "src/common/decorators/current-user.decorator";
 import { RespondJobRequestDto } from "./dto/respond-job-request.dto";
+import { FindJobQueryDto } from "./dto/find-job-query.dto";
+import { RequestJobDto } from "./dto/request-job.dto";
+import { FindJobRequestQueryDto } from "./dto/find-job-request-query-dto";
 
 @Controller('job')
 export class JobController {
@@ -14,18 +17,18 @@ export class JobController {
     }
 
     @Get('client')
-    async findMine(@CurrentUser() user: CurrentUserPayload) {
-        return this.jobService.findAllByClient(user.id)
+    async findMine(@CurrentUser() user: CurrentUserPayload, @Query() query: FindJobQueryDto) {
+        return this.jobService.findAllByClient(user.id, query.status)
     }
 
     @Get('professional')
-    async findRequets(@CurrentUser() user: CurrentUserPayload) {
-        return this.jobService.findAllRequestsByProfessional(user.id)
+    async findRequets(@CurrentUser() user: CurrentUserPayload, @Query() query: FindJobRequestQueryDto) {
+        return this.jobService.findAllRequestsByProfessional(user.id, query.status)
     }
 
     @Post(':id/request')
-    async requestJob(@Param('id') id: string, @CurrentUser() user: CurrentUserPayload) {
-        return this.jobService.requestJob(id, user.id)
+    async requestJob(@Param('id') id: string, @Body() dto: RequestJobDto, @CurrentUser() user: CurrentUserPayload) {
+        return this.jobService.requestJob(id, dto, user.id)
     }
 
     /** Profissional aceita/recusa um convite direto do cliente. */

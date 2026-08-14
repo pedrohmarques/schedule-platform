@@ -1,6 +1,7 @@
 "use client";
 
 import MyButton from "@/components/ui/MyButton";
+import { formatCurrency } from "@/lib/format";
 import { patchClientSelect } from "@/services/job.service";
 import { JobRequest } from "@/types/Job";
 import * as Dialog from "@radix-ui/react-dialog";
@@ -10,21 +11,22 @@ import { toast } from "sonner";
 interface ModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  requests: JobRequest[]
+  requests: JobRequest[];
+  /** Chamado depois que um profissional é aceito com sucesso. */
+  onSelected: () => void;
 }
 
-async function professionalSelected(request: JobRequest) {
-  try {
-    const acceptJob = await patchClientSelect(request.id);
-    console.log(acceptJob)
-    toast.success(`Pedido de ${request.professional.name} aceito com sucesso.`)
-  } catch {
-    toast.success(`Não foi possível aceita o pedido de ${request.professional.name}.`)
-  }
+export default function ModalCandidates({ open, requests, onOpenChange, onSelected }: ModalProps) {
+    async function professionalSelected(request: JobRequest) {
+        try {
+            await patchClientSelect(request.id);
+            toast.success(`Pedido de ${request.professional.name} aceito com sucesso.`);
+            onSelected();
+        } catch {
+            toast.error(`Não foi possível aceitar o pedido de ${request.professional.name}.`);
+        }
+    }
 
-}
-
-export default function ModalCandidates({ open, requests, onOpenChange }: ModalProps) {
     return (
         <Dialog.Root open={open} onOpenChange={onOpenChange}>
           <Dialog.Portal>
@@ -38,18 +40,21 @@ export default function ModalCandidates({ open, requests, onOpenChange }: ModalP
               </div>
               <ul className="mt-4 space-y-3">
                 {requests.map((r) => (
-                    <li key={r.professionalId} className="rounded-xl border p-4 flex flex-wrap items-center justify-between gap-3">
-                        <div className="min-w-0">
-                            <div className="flex items-center gap-2"><p className="font-medium">{r.professional.name}</p></div>
-                            <p className="text-sm text-[var(--primary)] capitalize">{r.professional.area}</p>
+                    <li key={r.professionalId} className="rounded-xl border p-4 flex flex-col flex-wrap items-start justify-between gap-4">
+                        <div className="min-w-0 flex sm:w-full items-start justify-between gap-4">
+                            <div className="min-w-0 items-start">
+                                <p className="font-medium">{r.professional.name}</p>
+                                <p className="text-sm text-[var(--primary)] capitalize">{r.professional.area}</p>
+                                <p className="mt-1 text-sm text-[var(--muted-foreground)]">{r.description}</p>
+                            </div>
+                            <p className="font-semibold whitespace-nowrap">{formatCurrency(r.price)}</p>
                         </div>
-                        <div className="flex flex-col items-end gap-2">
-                            <MyButton theme="primary" onClick={() => professionalSelected(r)}>Escolher</MyButton>
-                        </div>
+
+                        <MyButton theme="primary" onClick={() => professionalSelected(r)}>Aceitar</MyButton>
                     </li>
                 ))}
               </ul>
-              
+
             </Dialog.Content>
           </Dialog.Portal>
         </Dialog.Root>

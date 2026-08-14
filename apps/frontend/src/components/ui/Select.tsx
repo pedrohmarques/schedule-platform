@@ -1,5 +1,6 @@
 "use client";
 
+import { Professional } from "@/types/Professional";
 import * as RadixSelect from "@radix-ui/react-select";
 import { ChevronDown, Check } from "lucide-react";
 
@@ -36,7 +37,7 @@ export default function Select({ label, name, value, onChange, options, placehol
         </RadixSelect.Trigger>
 
         <RadixSelect.Portal>
-          <RadixSelect.Content className="overflow-hidden rounded-[var(--radius)] border border-[var(--border)] bg-[var(--popover)] text-[var(--popover-foreground)] shadow-md">
+          <RadixSelect.Content className="z-[60] overflow-hidden rounded-[var(--radius)] border border-[var(--border)] bg-[var(--popover)] text-[var(--popover-foreground)] shadow-md">
             <RadixSelect.Viewport className="p-1">
               {options.map((opt) => (
                 <RadixSelect.Item

@@ -8,8 +8,10 @@ import { UpdateProfissionalDto } from "./dto/update-profissional.dto";
 export class ProfissionalService {
     constructor(private readonly prisma: PrismaService) {}
 
-    findAll() {
-        return this.prisma.profissional.findMany()
+    findAll(area?: string ) {
+        return this.prisma.profissional.findMany({
+            where: area ? { area: {contains: area, mode: 'insensitive' } } : undefined
+        })
     }
 
     async findOne(id: string) {
