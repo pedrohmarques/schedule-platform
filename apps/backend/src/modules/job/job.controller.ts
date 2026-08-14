@@ -11,6 +11,11 @@ import { FindJobRequestQueryDto } from "./dto/find-job-request-query-dto";
 export class JobController {
     constructor(private readonly jobService: JobService){}
 
+    @Get()
+    async findJobByArea(@Query() query: FindJobQueryDto, @CurrentUser() user: CurrentUserPayload) {
+        return this.jobService.findJobByArea(user.id, query.area);
+    }
+
     @Post()
     async create(@Body() dto: CreateJobDto, @CurrentUser() user: CurrentUserPayload) {
         return this.jobService.create(dto, user.id)
@@ -23,7 +28,7 @@ export class JobController {
 
     @Get('professional')
     async findRequets(@CurrentUser() user: CurrentUserPayload, @Query() query: FindJobRequestQueryDto) {
-        return this.jobService.findAllRequestsByProfessional(user.id, query.status)
+        return this.jobService.findAllRequestsByProfessional(user.id, query.status, query.origin)
     }
 
     @Post(':id/request')

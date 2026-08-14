@@ -1,6 +1,6 @@
 import { IsArray, IsEnum, IsOptional } from "class-validator";
 import { Transform } from "class-transformer";
-import { RequestStatus } from "@prisma/client";
+import { RequestOrigin, RequestStatus } from "@prisma/client";
 
 export class FindJobRequestQueryDto {
   @IsOptional()
@@ -8,4 +8,10 @@ export class FindJobRequestQueryDto {
   @IsArray()
   @IsEnum(RequestStatus, { each: true })
   status?: RequestStatus[];
+
+  @IsOptional()
+  @Transform(({ value }) => (typeof value === "string" ? value.split(",") : value))
+  @IsArray()
+  @IsEnum(RequestOrigin, { each: true })
+  origin?: RequestOrigin[];
 }

@@ -3,10 +3,12 @@
 import { useEffect, useState } from "react";
 import Tabs, { Tab } from "@/components/ui/Tab";
 import Requests from "./Requests";
+import Jobs from "./Jobs";
 
 interface StoredUser {
     name: string;
     email: string;
+    area: string;
 }
 
 export default function DashboardProfessional() {
@@ -29,13 +31,13 @@ export default function DashboardProfessional() {
                 <div className="mt-6">
                     <Tabs>
                         <Tab label="Pedidos">
-                            <Requests />
+                            <Requests isHistory={false}/>
                         </Tab>
                         <Tab label="Histórico">
-                            <p className="">Histórico ficarma aqui.</p>
+                            <Requests isHistory={true}/>
                         </Tab>
                         <Tab label="Vagas">
-                            <p className="">Vagas ficarma aqui.</p>
+                            {user && <Jobs userArea={user.area}/>}
                         </Tab>
                     </Tabs>
                 </div>

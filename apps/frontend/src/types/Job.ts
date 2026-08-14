@@ -11,6 +11,7 @@ export interface JobRequestClient {
 export interface JobRequest {
     id: string;
     status: "PENDING" | "ACCEPTED" | "REJECTED";
+    origin: "CLIENT_INVITE" | "PROFESSIONAL_APPLICATION";
     price: number;
     description: string;
     jobId: string;

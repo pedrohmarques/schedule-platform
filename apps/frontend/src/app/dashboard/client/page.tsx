@@ -1,14 +1,16 @@
 "use client";
 import MyButton from "@/components/ui/MyButton";
-import { getClientRequests } from "@/services/job.service";
+import { completeJob, getClientRequests } from "@/services/job.service";
 import { Job } from "@/types/Job";
 import { formatCurrency, formatDate } from "@/lib/format";
 import { useEffect, useState } from "react";
-import { Users } from "lucide-react";
+import { Users, Check, ClipboardList } from "lucide-react";
 import Status from "@/components/dashboard/Status";
+import EmptyState from "@/components/ui/EmptyState";
 import ModalCandidates from "@/components/dashboard/client/ModalCandidates";
 import ModalRequest from "@/components/dashboard/client/ModalRequest";
 import { SERVICE_AREAS } from "@/constants/areas";
+import { toast } from "sonner";
 
 interface StoredUser {
     name: string;
@@ -39,6 +41,16 @@ export default function DashboardClient() {
             setUser(JSON.parse(raw));
         }
     }, []);
+
+    async function finishJob(job: Job) {
+        try {
+            const completedJob = await completeJob(job.id)
+            toast.success(`Pedido ${job.title} concluido com sucesso.`)
+            fetchJobs()
+        } catch {
+            toast.success(`Não foi possivel concluir o ${job.title}.`)
+        }
+    }
 
     async function fetchJobs() {
         try {
@@ -96,7 +108,11 @@ export default function DashboardClient() {
 
                         <div className="mt-4 space-y-3">
                             {jobs.length === 0 && (
-                                <p className="text-sm text-[var(--muted-foreground)]">Você ainda não fez nenhum pedido.</p>
+                                <EmptyState
+                                    icon={ClipboardList}
+                                    title="Você ainda não fez nenhum pedido"
+                                    description="Seus pedidos de serviço vão aparecer aqui assim que forem criados."
+                                />
                             )}
                             <ul className="mt-4 space-y-3">
                                 {jobs.map((job) => (
@@ -136,6 +152,9 @@ export default function DashboardClient() {
                                                         className="inline-flex items-center justify-center gap-2 whitespace-nowrap font-medium cursor-pointer transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 disabled:cursor-not-allowed [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 border border-[var(--input)] bg-[var(--background)] shadow-sm hover:bg-[var(--accent)] hover:text-[var(--accent-foreground)] h-8 rounded-md px-3 text-xs">
                                                         <Users size={16}/> Ver candidatos
                                                     </button>
+                                                )}
+                                                {job.status === "ACCEPTED" && (
+                                                    <MyButton onClick={()=>finishJob(job)} theme="primary"><Check size={16}></Check></MyButton>
                                                 )}
                                             </div>
                                         </div>

@@ -75,6 +75,12 @@ enum RequestStatus {
   PENDING
   ACCEPTED
   REJECTED
+  COMPLETED
+}
+
+enum RequestOrigin {
+  CLIENT_INVITE // job criado já endereçado a esse profissional; ele responde
+  PROFESSIONAL_APPLICATION // profissional se candidatou a um job OPEN
 }
 
 model Job {
@@ -97,6 +103,7 @@ model Job {
 model JobRequest {
   id     String        @id @default(cuid())
   status RequestStatus @default(PENDING)
+  origin RequestOrigin @default(PROFESSIONAL_APPLICATION)
   price  Decimal
   description String
 

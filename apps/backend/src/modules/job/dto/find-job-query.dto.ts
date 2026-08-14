@@ -10,4 +10,9 @@ export class FindJobQueryDto {
   @IsArray()
   @IsEnum(JobStatus, { each: true })
   status?: JobStatus[];
+
+  @IsOptional()
+  @Transform(({ value }) => (typeof value === "string" ? value.split(",") : value))
+  @IsArray()
+  area?: string[];
 }

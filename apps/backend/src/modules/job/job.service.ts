@@ -7,7 +7,7 @@ import {
 import { PrismaService } from "src/prisma/prisma.service";
 import { CreateJobDto } from "./dto/create-job.dto";
 import { RequestAction } from "./dto/respond-job-request.dto";
-import { JobStatus, RequestStatus } from "@prisma/client";
+import { JobStatus, RequestOrigin, RequestStatus } from "@prisma/client";
 import { RequestJobDto } from "./dto/request-job.dto";
 
 @Injectable()
@@ -23,12 +23,26 @@ export class JobService {
         return { ...job, price: Number(job.price) };
     }
 
-    /**
-     * Sem professionalId -> job fica OPEN, disponível pra qualquer profissional
-     * solicitar (ver requestJob). Com professionalId -> o cliente já está
-     * convidando alguém específico, então cria o job + o JobRequest juntos,
-     * como PENDING (aguardando esse profissional aceitar/recusar).
-     */
+    async findJobByArea(professionalId: string, statuses?: string[]) {
+        const jobs = await this.prisma.job.findMany({
+            where: {
+                requests: { none: {professionalId} },
+                status: "OPEN",
+                ...(statuses && statuses.length > 0 ? { area: { in: statuses } } : {}),
+            },
+            orderBy: { createdAt: "desc" },
+            include: {
+                requests: true,
+                client: { select: {id: true, name: true} }
+            }
+        });
+
+        return jobs.map((job) => ({
+            ...this.toPlainJob(job),
+            requests: job.requests.map((request) => this.toPlainJob(request)),
+        }));
+    }
+
     async create(dto: CreateJobDto, clientId: string) {
         const { professionalId, ...jobData } = dto;
 
@@ -38,7 +52,16 @@ export class JobService {
                 clientId,
                 status: professionalId ? "PENDING" : "OPEN",
                 requests: professionalId
-                    ? { create: [{ professionalId, price: jobData.price, description: jobData.description }] }
+                    ? {
+                          create: [
+                              {
+                                  professionalId,
+                                  price: jobData.price,
+                                  description: jobData.description,
+                                  origin: "CLIENT_INVITE",
+                              },
+                          ],
+                      }
                     : undefined,
             },
             include: { requests: true },
@@ -47,11 +70,16 @@ export class JobService {
         return this.toPlainJob(job);
     }
 
-    async findAllRequestsByProfessional(professionalId: string, statuses?: RequestStatus[]) {
+    async findAllRequestsByProfessional(
+        professionalId: string,
+        statuses?: RequestStatus[],
+        origins?: RequestOrigin[],
+    ) {
         const requests = await this.prisma.jobRequest.findMany({
-            where: { 
+            where: {
                 professionalId,
                 ...(statuses && statuses.length > 0 ? { status: { in: statuses } } : {}),
+                ...(origins && origins.length > 0 ? { origin: { in: origins } } : {}),
             },
             orderBy: { createdAt: "desc" },
             include: { job:  {
@@ -61,7 +89,7 @@ export class JobService {
         });
 
         return requests.map((request) => ({
-            ...request,
+            ...this.toPlainJob(request),
             job: this.toPlainJob(request.job),
         }));
     }
@@ -105,7 +133,13 @@ export class JobService {
         }
 
         const request = await this.prisma.jobRequest.create({
-            data: { jobId, professionalId, price: dto?.price || job.price, description: dto.description },
+            data: {
+                jobId,
+                professionalId,
+                price: dto?.price || job.price,
+                description: dto.description,
+                origin: "PROFESSIONAL_APPLICATION",
+            },
         });
 
         return this.toPlainJob(request);
@@ -220,10 +254,16 @@ export class JobService {
             throw new ForbiddenException("Você não faz parte desse job.");
         }
 
-        const updated = await this.prisma.job.update({
-            where: { id: jobId },
-            data: { status: "COMPLETED" },
-        });
+        const [, updated] = await this.prisma.$transaction([
+            this.prisma.jobRequest.update({
+                where: { id: acceptedRequest!.id },
+                data: { status: "COMPLETED" },
+            }),
+            this.prisma.job.update({
+                where: { id: jobId },
+                data: { status: "COMPLETED" },
+            }),
+        ]);
 
         return this.toPlainJob(updated);
     }

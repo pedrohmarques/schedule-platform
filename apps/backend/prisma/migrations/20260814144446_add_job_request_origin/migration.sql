@@ -1,0 +1,5 @@
+-- CreateEnum
+CREATE TYPE "RequestOrigin" AS ENUM ('CLIENT_INVITE', 'PROFESSIONAL_APPLICATION');
+
+-- AlterTable
+ALTER TABLE "JobRequest" ADD COLUMN     "origin" "RequestOrigin" NOT NULL DEFAULT 'PROFESSIONAL_APPLICATION';

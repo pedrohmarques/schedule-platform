@@ -1,11 +1,12 @@
 "use client";
 
+import EmptyState from "@/components/ui/EmptyState";
 import MyButton from "@/components/ui/MyButton";
 import { formatCurrency } from "@/lib/format";
 import { patchClientSelect } from "@/services/job.service";
 import { JobRequest } from "@/types/Job";
 import * as Dialog from "@radix-ui/react-dialog";
-import { X } from "lucide-react";
+import { Users, X } from "lucide-react";
 import { toast } from "sonner";
 
 interface ModalProps {
@@ -38,6 +39,14 @@ export default function ModalCandidates({ open, requests, onOpenChange, onSelect
                   <X size={18} />
                 </Dialog.Close>
               </div>
+              {requests.length === 0 && (
+                <EmptyState
+                    className="mt-4"
+                    icon={Users}
+                    title="Nenhum candidato ainda"
+                    description="Assim que um profissional se candidatar, ele aparece aqui."
+                />
+              )}
               <ul className="mt-4 space-y-3">
                 {requests.map((r) => (
                     <li key={r.professionalId} className="rounded-xl border p-4 flex flex-col flex-wrap items-start justify-between gap-4">
