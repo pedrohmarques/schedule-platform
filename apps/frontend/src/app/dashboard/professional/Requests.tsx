@@ -9,6 +9,7 @@ import { Job, JobRequest } from "@/types/Job";
 import { Check, Inbox, X } from "lucide-react";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
+import { SERVICE_AREAS } from "@/constants/areas";
 
 
 type FilterStatus = "REJECTED" | "PENDING" | "ACCEPTED" | "CANCELLED" | "COMPLETED"
@@ -59,7 +60,8 @@ export default function Requests({ isHistory }: RequestModel) {
 
             if(requests) {
                 const filtered = requests.filter((request) =>
-                    request.origin === "CLIENT_INVITE" || request.status === "ACCEPTED"
+                    (request.origin === "CLIENT_INVITE" && (request.status === "ACCEPTED" || request.status === "PENDING")) || 
+                    (request.origin === "PROFESSIONAL_APPLICATION" && request.status === "ACCEPTED")
                 )
                 setRequests(filtered)
             }
@@ -87,11 +89,13 @@ export default function Requests({ isHistory }: RequestModel) {
                 ))}
             </div>
             {requests.length === 0 && (
-                <EmptyState
-                    icon={Inbox}
-                    title="Nenhum pedido por aqui"
-                    description="Convites de clientes e candidaturas aceitas aparecem aqui."
-                />
+                <div className="mt-4">
+                    <EmptyState
+                        icon={Inbox}
+                        title="Nenhum pedido por aqui"
+                        description="Convites de clientes e candidaturas aceitas aparecem aqui."
+                    />
+                </div>
             )}
             <ul className="mt-4 space-y-3">
                 {requests.map((request) => (
@@ -101,10 +105,14 @@ export default function Requests({ isHistory }: RequestModel) {
                                 <div className="flex flex-col items-start gap-1 w-full">
                                     <div className="flex gap-4">
                                         <p className="text-lg font-semibold truncate">
-                                            {request?.job.client.name}
+                                            {request?.job.title}
                                         </p> 
                                         <Status type={request.status} />
                                     </div>
+                                    <p className="text-sm font-medium">
+                                        {request.job.client.name} -{" "}
+                                        <span className="text-[var(--primary)]">{SERVICE_AREAS.find((service) => service.value === request.job.area)?.label}</span>
+                                    </p>
                                     <div className="flex items-start">
                                         <p className="mt-1 max-w-xl text-sm text-[var(--muted-foreground)]">{request.job.description}</p>
                                     </div>                                                                                    

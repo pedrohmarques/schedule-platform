@@ -8,6 +8,7 @@ import { Job, JobRequest } from "@/types/Job";
 import EmptyState from "@/components/ui/EmptyState";
 import { Briefcase, Send } from "lucide-react";
 import { useEffect, useState } from "react";
+import { SERVICE_AREAS } from "@/constants/areas";
 
 interface UserModel {
     userArea: string;
@@ -64,12 +65,16 @@ export default function Jobs({userArea}: UserModel) {
                                         <div className="flex flex-col items-start gap-1 w-full">
                                             <div className="flex gap-4">
                                                 <p className="text-lg font-semibold truncate">
-                                                    {job.client.name}
+                                                    {job.title}
                                                 </p> 
                                                 <div className="inline-flex items-center rounded-md border px-2.5 py-0.5 text-xs font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 border-transparent bg-[var(--secondary)] text-[var(--secondary-foreground)]">
                                                     {job.requests.length} candidato(s)
                                                 </div>
                                             </div>
+                                            <p className="text-sm font-medium">
+                                                {job.client.name} -{" "}
+                                                <span className="text-[var(--primary)]">{SERVICE_AREAS.find((service) => service.value === job.area)?.label}</span>
+                                            </p>
                                             <div className="flex items-start">
                                                 <p className="mt-1 max-w-xl text-sm text-[var(--muted-foreground)]">{job.description}</p>
                                             </div>                                                                                    
@@ -108,6 +113,10 @@ export default function Jobs({userArea}: UserModel) {
                                         <p className="text-lg font-semibold truncate">{request.job.title}</p>
                                         <Status type={request.status} />
                                     </div>
+                                    <p className="text-sm font-medium">
+                                        {request.job.client.name} -{" "}
+                                        <span className="text-[var(--primary)]">{SERVICE_AREAS.find((service) => service.value === request.job.area)?.label}</span>
+                                    </p>
                                     <p className="mt-1 max-w-xl text-sm text-[var(--muted-foreground)]">{request.job.description}</p>
                                     <p className="mt-3 text-xs text-[var(--muted-foreground)]">{formatDate(request.job.createdAt)}</p>
                                 </div>
