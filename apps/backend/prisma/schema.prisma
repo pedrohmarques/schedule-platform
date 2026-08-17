@@ -44,7 +44,7 @@ model Profissional {
   phone       String
   age         Int
   cpf         String  @unique
-  area        String  @unique
+  area        String 
   description String?
 
   job JobRequest[]

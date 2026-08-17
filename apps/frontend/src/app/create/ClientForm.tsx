@@ -60,7 +60,6 @@ export default function ClientForm() {
                 state
             }
             const res = await createClient(data);
-            console.log(res)
             toast.success("Conta criada com sucesso.")
             router.push("/")
         } catch {

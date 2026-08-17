@@ -11,6 +11,7 @@ import { toast } from "sonner";
 import Select from "@/components/ui/Select";
 import { BRAZILIAN_STATES } from "@/constants/states";
 import { SERVICE_AREAS } from "@/constants/areas";
+import Textarea from "@/components/ui/Textarea";
 
 export default function ProfissionalForm() {
     const router = useRouter()
@@ -120,7 +121,13 @@ export default function ProfissionalForm() {
                     options={[...SERVICE_AREAS]}
                 />
 
-                <Input label="Descrição" name="description" type="text" value={description} onChange={(e) => setDescription(e.target.value)} />
+                <Textarea
+                    label="Sobre mim"
+                    name="description"
+                    placeholder="Descreva sobre você e o serviço que você oferece."
+                    value={description}
+                    onChange={(e) => setDescription(e.target.value)}
+                />
                 
                 <MyButton theme="primary">Criar conta</MyButton>
             </form>

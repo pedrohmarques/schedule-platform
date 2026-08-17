@@ -42,7 +42,7 @@ export function createClient(cliData: ClientData) {
 }
 
 export function createProf(proData: ProfessionalData) {
-  return api<Professional>('/profissional', {
+  return api<Professional>('/professional', {
     method: 'POST',
     body: JSON.stringify(proData),
   });

@@ -60,7 +60,7 @@ export default function ModalApplie({ open, job, onOpenChange, onSubmit }: Modal
                     <Textarea
                         label="Descrição"
                         name="description"
-                        placeholder="Descreva o serviço que você precisa"
+                        placeholder="Descreva o serviço que você irá realizar pra atender o pedido."
                         value={form.description}
                         onChange={handleChange}
                     />
