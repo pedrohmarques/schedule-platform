@@ -55,7 +55,14 @@ export default function ModalApplie({ open, job, onOpenChange, onSubmit }: Modal
               </div>
 
                 <div className="mt-4 flex fles-wrap flex-col gap-4 items-start justify-between">
-                    <MaskedInput label="Valor (R$)" variant="price" name="price" value={form.price} onChange={handleChange}/>
+                    <MaskedInput 
+                      label="Valor (R$)" 
+                      variant="price" 
+                      name="price" 
+                      tooltip="Caso não preencha o campo, será considerado o valor original do Pedido."
+                      value={form.price} 
+                      onChange={handleChange}
+                    />
 
                     <Textarea
                         label="Descrição"

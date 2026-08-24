@@ -2,6 +2,8 @@
 
 import { InputHTMLAttributes, useState } from "react";
 import { IMaskInput } from "react-imask";
+import Tooltip from "./Tooltip";
+import { Info } from "lucide-react";
 
 type MaskedFieldVariant = "phone" | "cep" | "price";
 
@@ -9,6 +11,7 @@ interface MaskedInputProps
   extends Omit<InputHTMLAttributes<HTMLInputElement>, "type" | "onChange" | "min" | "max"> {
   label: string;
   name: string;
+  tooltip?: string;
   variant: MaskedFieldVariant;
   value?: string;
   onChange?: (e: React.ChangeEvent<HTMLInputElement>) => void;
@@ -63,6 +66,7 @@ export default function MaskedInput({
   label,
   id,
   name,
+  tooltip,
   variant,
   className,
   value,
@@ -99,9 +103,18 @@ export default function MaskedInput({
 
   return (
     <div className="flex flex-col gap-1.5 w-full">
-      <label htmlFor={inputId} className="text-sm font-medium text-[var(--foreground)]">
-        {label}
-      </label>
+      <div className="flex gap-2">
+        <label htmlFor={name} className="text-sm font-medium text-[var(--foreground)]">
+          {label}
+        </label>
+        {tooltip && (
+          <Tooltip content={tooltip}>
+            <button type="button" className="cursor-help text-[var(--muted-foreground)]">
+              <Info size={16} />
+            </button>
+          </Tooltip>
+        )}
+      </div>
       <IMaskInput
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         mask={config.mask as any}

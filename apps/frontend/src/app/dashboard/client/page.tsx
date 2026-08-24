@@ -44,7 +44,7 @@ export default function DashboardClient() {
 
     async function finishJob(job: Job) {
         try {
-            const completedJob = await completeJob(job.id)
+            await completeJob(job.id)
             toast.success(`Pedido ${job.title} concluido com sucesso.`)
             fetchJobs()
         } catch {

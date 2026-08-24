@@ -1,8 +1,8 @@
 "use client";
 
-import { Professional } from "@/types/Professional";
 import * as RadixSelect from "@radix-ui/react-select";
-import { ChevronDown, Check } from "lucide-react";
+import { ChevronDown, Check, Info } from "lucide-react";
+import Tooltip from "./Tooltip";
 
 interface Option {
   label: string;
@@ -12,18 +12,29 @@ interface Option {
 interface SelectProps {
   label: string;
   name: string;
+  tooltip?: string;
   value: string;
   onChange: (value: string) => void;
   options: Option[];
   placeholder?: string;
 }
 
-export default function Select({ label, name, value, onChange, options, placeholder = "Selecione..." }: SelectProps) {
+export default function Select({ label, name, tooltip, value, onChange, options, placeholder = "Selecione..." }: SelectProps) {
   return (
     <div className="flex flex-col gap-1.5 w-full">
-      <label htmlFor={name} className="text-sm font-medium text-[var(--foreground)]">
-        {label}
-      </label>
+      <div className="flex gap-2">
+        <label htmlFor={name} className="text-sm font-medium text-[var(--foreground)]">
+          {label}
+        </label>
+        {tooltip && (
+          <Tooltip content={tooltip}>
+            <button type="button" className="cursor-help text-[var(--muted-foreground)]">
+              <Info size={16} />
+            </button>
+          </Tooltip>
+        )}
+      </div>
+      
 
       <RadixSelect.Root value={value} onValueChange={onChange} name={name}>
         <RadixSelect.Trigger

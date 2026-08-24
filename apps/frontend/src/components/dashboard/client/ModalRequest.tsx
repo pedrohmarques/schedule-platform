@@ -80,6 +80,7 @@ export default function ModalRequest({ open, onOpenChange, onSubmit }: ModalProp
                         <Select
                             label="Profissional"
                             name="professionalId"
+                            tooltip="Caso não selecione um profissional, será aberto como Pedido em aberto, para que profissionais se candidatem."
                             value={form.professionalId}
                             onChange={(value) => setForm((prev) => ({ ...prev, professionalId: value }))}
                             options={professionals.map((p) => ({ label: p.name, value: p.id }))}

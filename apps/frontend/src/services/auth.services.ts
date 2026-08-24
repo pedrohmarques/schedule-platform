@@ -20,3 +20,10 @@ export function loginProf(email: string, password: string) {
     body: JSON.stringify({ email, password }),
   });
 }
+
+export function postResetPassword(email: string, password: string, role: 'client' | 'professional') {
+  return api<LoginResponse>('/auth/reset', {
+    method: 'POST',
+    body: JSON.stringify({ email, password, role }),
+  });
+}

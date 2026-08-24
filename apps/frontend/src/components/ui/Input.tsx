@@ -14,6 +14,7 @@ export default function Input({ label, type = "text", id, name, className, ...pr
   const inputId = id ?? name;
   const [showPassword, setShowPassword] = useState(false);
   const isPassword = type === "password";
+  const inputType = isPassword && showPassword ? "text" : type;
 
   return (
     <div className="flex flex-col gap-1.5 w-full">
@@ -24,13 +25,14 @@ export default function Input({ label, type = "text", id, name, className, ...pr
         <input
           id={inputId}
           name={name}
-          type={type}
+          type={inputType}
           className={`w-full rounded-[var(--radius)] border border-[var(--border)] bg-[var(--background)] px-4 py-2.5 text-sm text-[var(--foreground)] placeholder:text-[var(--muted-foreground)] outline-none transition-colors focus-visible:ring-1 focus-visible:ring-[var(--ring)] disabled:cursor-not-allowed disabled:opacity-50 ${isPassword ? "pr-10" : ""} ${className ?? ""}`}
           {...props}
         />
 
         {isPassword && (
-          <button 
+          <button
+            type="button"
             onClick={() => setShowPassword((prev) => !prev)}
             aria-label={showPassword ? "Ocultar senha" : "Mostrar senha"}
             className="absolute inset-y-0 right-3 flex items-center text-[var(--muted-foreground)]">

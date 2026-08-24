@@ -4,6 +4,7 @@ import { AuthService } from './auth.service';
 import { Public } from 'src/common/decorators/public.decorator';
 import { ClientEntity } from '../client/entities/client.entity';
 import { ProfissionalEntity } from '../profissional/entities/profissional.entity';
+import { ResetPasswordDto } from './dto/reset-password';
 
 @Controller('auth')
 export class AuthController {
@@ -23,5 +24,12 @@ export class AuthController {
   async proflogin(@Body() dto: LoginDto) {
     const user = await this.authService.login(dto.email, dto.password, "profissional");
     return { ...user, profile: new ProfissionalEntity(user.profile) };
+  }
+
+  @Post('reset')
+  @Public()
+  async resetPassword(@Body() dto: ResetPasswordDto) {
+    const user = await this.authService.resetPassword(dto.email, dto.password, dto.role);
+    return dto.role === 'client' ? new ClientEntity(user) : new ProfissionalEntity(user)
   }
 }

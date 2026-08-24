@@ -1,8 +1,8 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { loginClient, loginProf } from '@/services/auth.services';
+import { loginClient, loginProf, postResetPassword } from '@/services/auth.services';
 import MyButton from '@/components/ui/MyButton';
 import Input from '@/components/ui/Input';
 import { toast } from 'sonner';
@@ -19,6 +19,7 @@ const inactiveRoleClass =
 export default function LoginPage() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [resetPassword, setResetPassword] = useState(false)
   const [role, setRole] = useState<Role>('client');
   const router = useRouter();
 
@@ -35,6 +36,23 @@ export default function LoginPage() {
       toast.error('Email ou senha inválidos.');
     }
   }
+
+  async function handleResetSubmit(e: React.FormEvent){
+    e.preventDefault();
+    try {
+      await postResetPassword(email, password, role)
+      toast.success('Senha resetada com sucesso.')
+      setResetPassword(false)
+    } catch(e: any){
+      toast.error(e?.message ?? 'Não foi possível resetar a senha.')
+    }
+  }
+
+  useEffect(() => {
+    setEmail('')
+    setPassword('')
+    setRole('client')
+  }, [resetPassword])
 
   return (
     <div className="flex flex-col w-full max-w-sm">
@@ -67,18 +85,48 @@ export default function LoginPage() {
             </button>
         </div>
 
-        <form onSubmit={handleSubmit} className='mt-6 space-y-4 flex flex-col flex-1'>
+        {!resetPassword && (
+          <form onSubmit={handleSubmit} className='mt-6 space-y-4 flex flex-col flex-1'>
             <Input label="E-mail" name="email" type="email" placeholder="rafael@email.com" value={email} onChange={(e) => setEmail(e.target.value)}/>
             <Input label="Senha" name="password" type="password" value={password} onChange={(e) => setPassword(e.target.value)} />
             <MyButton theme='primary'>Entrar</MyButton>
-        </form>
+          </form>
+        )}
 
-        <span className="mt-6 text-sm text-[var(--muted-foreground)]">
-            Ainda não tem conta? 
-            <Link href="/create" className="font-medium text-[var(--primary)] underline-offset-4 hover:underline ml-2">
-              Criar cadastro
-            </Link>
-        </span>
+        {resetPassword && (
+          <form onSubmit={handleResetSubmit} className='mt-6 space-y-4 flex flex-col flex-1'>
+            <Input label="E-mail" name="email" type="email" placeholder="rafael@email.com" value={email} onChange={(e) => setEmail(e.target.value)}/>
+            <Input label="Nova senha" name="password" type="password" value={password} onChange={(e) => setPassword(e.target.value)} />
+            <MyButton theme='primary'>Resetar senha</MyButton>
+          </form>
+        )}
+
+        <div className="mt-6 flex flex-col gap-2">
+          {!resetPassword && (
+            <span className="text-sm text-[var(--muted-foreground)]">
+              Esqueceu a senha? 
+              <span onClick={() => setResetPassword(true)} className="font-medium text-[var(--primary)] underline-offset-4 hover:underline ml-2 cursor-pointer">
+                Resetar senha
+              </span>
+            </span>
+          )}
+
+          {resetPassword && (
+            <span className="text-sm text-[var(--muted-foreground)]">
+              Já possui conta? 
+              <span onClick={() => setResetPassword(false)} className="font-medium text-[var(--primary)] underline-offset-4 hover:underline ml-2 cursor-pointer">
+                Entrar
+              </span>
+            </span>
+          )}
+
+          <span className="text-sm text-[var(--muted-foreground)]">
+              Ainda não tem conta? 
+              <Link href="/create" className="font-medium text-[var(--primary)] underline-offset-4 hover:underline ml-2">
+                Criar cadastro
+              </Link>
+          </span>
+        </div>
     </div>    
   );
 }
