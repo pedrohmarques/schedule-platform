@@ -8,7 +8,7 @@ import Textarea from "@/components/ui/Textarea";
 import { SERVICE_AREAS } from "@/constants/areas";
 import { createJobRequest } from "@/services/job.service";
 import { findByArea } from "@/services/professional.service";
-import { Professional } from "@/types/Professional";
+import { ProfessionalListItem } from "@/types/User";
 import * as Dialog from "@radix-ui/react-dialog";
 import { X } from "lucide-react";
 import { useEffect, useState } from "react";
@@ -21,7 +21,7 @@ interface ModalProps {
 }
 
 export default function ModalRequest({ open, onOpenChange, onSubmit }: ModalProps) {
-    const [professionals, setProfessionals] = useState<Professional[]>([]);
+    const [professionals, setProfessionals] = useState<ProfessionalListItem[]>([]);
     const [form, setForm] = useState({ title: '', area: '', description: '', price: '', professionalId: '' });
 
     function handleChange(e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) {
@@ -31,7 +31,7 @@ export default function ModalRequest({ open, onOpenChange, onSubmit }: ModalProp
     
     async function handleSubmit() {
       try {
-        const jobResponse = await createJobRequest(form);
+        await createJobRequest(form);
         toast.success(`Pedido criado com sucesso.`)
         onSubmit()
       } catch {

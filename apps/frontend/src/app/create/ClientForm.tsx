@@ -11,6 +11,7 @@ import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { createUser } from "@/services/create.service";
 import { Role } from "@/types/User";
+import DateInput from "@/components/ui/DateInput";
 
 export default function ClientForm() {
     const router = useRouter()
@@ -84,7 +85,8 @@ export default function ClientForm() {
                     <MaskedInput label="Telefone" name="phone" variant="phone" value={phone} onChange={(e) => setPhone(e.target.value)} />
                     <CpfInput label="CPF" name="cpf" value={cpf} onChange={(e) => setCpf(e.target.value)} />
                 </div>
-                {/* <Input label="Idade" name="age" type="number" placeholder="30" value={age} onChange={(e) => setAge(e.target.value)} /> */}
+                
+                <DateInput label="Data de nascimento" name="birthDate" value={birthDate} onChange={setBirthDate} />
 
                 <div className="grid gap-4 sm:grid-cols-2">
                     <MaskedInput label="CEP" name="cep" variant="cep" value={zipCode} onChange={(e) => setZipCode(e.target.value)} />

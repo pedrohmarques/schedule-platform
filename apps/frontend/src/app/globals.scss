@@ -43,8 +43,13 @@
 
 }
 
-* {
-  border-color: var(--border);
+// Precisa estar em @layer base: CSS sem layer vence CSS em layer no Tailwind
+// v4, então esta regra universal sobrescrevia toda utility de border-color
+// (ex.: border-[var(--destructive)] nos estados de erro dos inputs).
+@layer base {
+  * {
+    border-color: var(--border);
+  }
 }
 
 body {

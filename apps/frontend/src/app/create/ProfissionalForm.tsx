@@ -11,8 +11,9 @@ import Select from "@/components/ui/Select";
 import { BRAZILIAN_STATES } from "@/constants/states";
 import { SERVICE_AREAS } from "@/constants/areas";
 import Textarea from "@/components/ui/Textarea";
-import { Role } from "@/types/User";
+import { Role, ServiceArea } from "@/types/User";
 import { createUser } from "@/services/create.service";
+import DateInput from "@/components/ui/DateInput";
 
 export default function ProfissionalForm() {
     const router = useRouter()
@@ -20,7 +21,7 @@ export default function ProfissionalForm() {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [cpf, setCpf] = useState('');
-    const [area, setArea] = useState('');
+    const [area, setArea] = useState<ServiceArea | any>('');
     const [description, setDescription] = useState('');
     const [birthDate, setBirthDate] = useState('');
     const [zipCode, setZipCode] = useState('');
@@ -50,6 +51,7 @@ export default function ProfissionalForm() {
         e.preventDefault();
         try {
             const role: Role = 'professional'
+            
             const data = {
                 name,
                 email,
@@ -64,11 +66,11 @@ export default function ProfissionalForm() {
                 complement,
                 neighborhood,
                 city,
+                area,
                 state,
                 role
             }
-            const res = await createUser(data);
-            console.log(res)
+            await createUser(data);
             toast.success("Conta criada com sucesso.")
             router.push("/")
         } catch {
@@ -90,7 +92,7 @@ export default function ProfissionalForm() {
                     <MaskedInput label="Telefone" name="phone" variant="phone" value={phone} onChange={(e) => setPhone(e.target.value)} />
                     <CpfInput label="CPF" name="cpf" value={cpf} onChange={(e) => setCpf(e.target.value)} />
                 </div>
-                {/* <Input label="Idade" name="age" type="number" placeholder="30" value={age} onChange={(e) => setAge(e.target.value)} /> */}
+                <DateInput label="Data de nascimento" name="birthDate" value={birthDate} onChange={setBirthDate} />
 
                 <div className="grid gap-4 sm:grid-cols-2">
                     <MaskedInput label="CEP" name="cep" variant="cep" value={zipCode} onChange={(e) => setZipCode(e.target.value)} />
