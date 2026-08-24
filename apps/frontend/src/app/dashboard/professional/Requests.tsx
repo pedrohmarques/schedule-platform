@@ -67,7 +67,7 @@ export default function Requests({ isHistory }: RequestModel) {
             }
             
         } catch {
-
+            toast.error("Não foi possivel encontrar nenhuma requisição de trabalho.")
         }
     }
 

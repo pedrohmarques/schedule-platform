@@ -1,49 +1,28 @@
 import { api } from '@/lib/api';
-import { Client } from '@/types/Client';
-import { Professional } from '@/types/Professional';
+import type { Role, ServiceArea } from '@/types/User';
 
-interface ProfessionalData {
-    name: string;
-    email: string;
-    phone: string;
-    age: number;
-    area: string;
-    description: string;
-    cpf: string;
-    zipCode: string;
-    street: string;
-    number: string;
-    complement: string | null;
-    neighborhood: string;
-    city: string;
-    state: string;
+export interface CreateUserPayload {
+  name: string;
+  email: string;
+  password: string;   // faltava nos tipos antigos — ia sem type-safety
+  phone: string;
+  birthDate: string;  // ISO date, "1994-03-27"
+  cpf: string;
+  zipCode: string;
+  street: string;
+  number: string;
+  complement?: string;
+  neighborhood: string;
+  city: string;
+  state: string;
+  role: Role;
+  area?: ServiceArea;      // só profissional
+  description?: string;    // só profissional
 }
 
-interface ClientData {
-    name: string;
-    email: string;
-    phone: string;
-    age: number;
-    cpf: string;
-    zipCode: string;
-    street: string;
-    number: string;
-    complement: string | null;
-    neighborhood: string;
-    city: string;
-    state: string;
-}
-
-export function createClient(cliData: ClientData) {
-  return api<Client>('/client', {
+export function createUser(data: CreateUserPayload) {
+  return api<{ id: string }>('/user', {
     method: 'POST',
-    body: JSON.stringify(cliData),
-  });
-}
-
-export function createProf(proData: ProfessionalData) {
-  return api<Professional>('/professional', {
-    method: 'POST',
-    body: JSON.stringify(proData),
+    body: JSON.stringify(data),
   });
 }

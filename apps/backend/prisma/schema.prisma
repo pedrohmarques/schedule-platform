@@ -1,8 +1,3 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
-// Get a free hosted Postgres database in seconds: `npx create-db`
-
 generator client {
   provider = "prisma-client-js"
 }
@@ -11,62 +6,31 @@ datasource db {
   provider = "postgresql"
 }
 
-model Client {
-  id       String @id @default(cuid())
-  name     String
-  email    String @unique
-  password String
-  phone    String
-  age      Int
-  cpf      String @unique
-
-  zipCode      String
-  street       String
-  number       String
-  complement   String?
-  neighborhood String
-  city         String
-  state        String
-
-  job Job[]
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  @@index([zipCode])
-}
-
-model Profissional {
-  id          String  @id @default(cuid())
-  name        String
-  email       String  @unique
-  password    String
-  phone       String
-  age         Int
-  cpf         String  @unique
-  area        String 
-  description String?
-
-  job JobRequest[]
-
-  zipCode      String
-  street       String
-  number       String
-  complement   String?
-  neighborhood String
-  city         String
-  state        String
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  @@index([zipCode])
+// A lista real de áreas vivia só no SERVICE_AREAS do frontend. Como enum,
+// um valor inválido vira erro de compilação em vez de job que nunca casa.
+enum ServiceArea {
+  BARBEARIA
+  CABELEIREIRO
+  MANICURE_PEDICURE
+  ESTETICA_FACIAL
+  ESTETICA_CORPORAL
+  DEPILACAO
+  MAQUIAGEM
+  DESIGN_SOBRANCELHAS
+  MASSOTERAPIA
+  FISIOTERAPIA
+  PERSONAL_TRAINER
+  NUTRICAO
+  PSICOLOGIA
+  ODONTOLOGIA
+  PODOLOGIA
+  TATUAGEM
 }
 
 enum JobStatus {
-  OPEN // sem profissional confirmado, disponível pra qualquer um solicitar
-  PENDING // convite enviado a um profissional específico, aguardando resposta
-  ACCEPTED // profissional confirmado pro job
+  OPEN // sem profissional confirmado
+  PENDING // convite enviado a um profissional específico
+  ACCEPTED
   CANCELLED
   COMPLETED
 }
@@ -75,46 +39,102 @@ enum RequestStatus {
   PENDING
   ACCEPTED
   REJECTED
+  CANCELLED
   COMPLETED
 }
 
 enum RequestOrigin {
-  CLIENT_INVITE // job criado já endereçado a esse profissional; ele responde
-  PROFESSIONAL_APPLICATION // profissional se candidatou a um job OPEN
+  CLIENT_INVITE
+  PROFESSIONAL_APPLICATION
+}
+
+model User {
+  id        String   @id @default(cuid())
+  name      String
+  email     String   @unique
+  password  String
+  phone     String
+  birthDate DateTime @db.Date
+  cpf       String   @unique
+
+  zipCode      String
+  street       String
+  number       String
+  complement   String?
+  neighborhood String
+  city         String
+  state        String
+
+  clientProfile       ClientProfile?
+  professionalProfile ProfessionalProfile?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([zipCode])
+}
+
+model ClientProfile {
+  id     String @id @default(cuid())
+  userId String @unique
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  jobs Job[]
+
+  createdAt DateTime @default(now())
+}
+
+model ProfessionalProfile {
+  id     String @id @default(cuid())
+  userId String @unique
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  area        ServiceArea
+  description String?
+
+  requests JobRequest[]
+
+  createdAt DateTime @default(now())
+
+  @@index([area])
 }
 
 model Job {
-  id          String    @id @default(cuid())
-  area        String
+  id          String      @id @default(cuid())
+  area        ServiceArea
   title       String
   description String
-  price       Decimal
-  status      JobStatus @default(OPEN)
+  price       Decimal     @db.Decimal(10, 2)
+  status      JobStatus   @default(OPEN)
 
-  client   Client @relation(fields: [clientId], references: [id])
+  client   ClientProfile @relation(fields: [clientId], references: [id], onDelete: Restrict)
   clientId String
 
   requests JobRequest[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+
+  @@index([clientId])
+  @@index([status, area])
 }
 
 model JobRequest {
-  id     String        @id @default(cuid())
-  status RequestStatus @default(PENDING)
-  origin RequestOrigin @default(PROFESSIONAL_APPLICATION)
-  price  Decimal
+  id          String        @id @default(cuid())
+  status      RequestStatus @default(PENDING)
+  origin      RequestOrigin @default(PROFESSIONAL_APPLICATION)
+  price       Decimal       @db.Decimal(10, 2)
   description String
 
-  job   Job    @relation(fields: [jobId], references: [id])
+  job   Job    @relation(fields: [jobId], references: [id], onDelete: Cascade)
   jobId String
 
-  professional   Profissional @relation(fields: [professionalId], references: [id])
+  professional   ProfessionalProfile @relation(fields: [professionalId], references: [id], onDelete: Restrict)
   professionalId String
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  @@unique([jobId, professionalId]) // impede o mesmo profissional solicitar o mesmo job 2x
+  @@unique([jobId, professionalId])
+  @@index([professionalId])
 }

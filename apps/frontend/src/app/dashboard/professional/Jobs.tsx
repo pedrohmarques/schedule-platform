@@ -9,6 +9,7 @@ import EmptyState from "@/components/ui/EmptyState";
 import { Briefcase, Send } from "lucide-react";
 import { useEffect, useState } from "react";
 import { SERVICE_AREAS } from "@/constants/areas";
+import { toast } from "sonner";
 
 interface UserModel {
     userArea: string;
@@ -37,7 +38,7 @@ export default function Jobs({userArea}: UserModel) {
                 setRequestedJobs(requests)
             }
         } catch {
-
+            toast.error("Não foi possivel encontrar nenhuma requisição de trabalho.")
         }
     }
 

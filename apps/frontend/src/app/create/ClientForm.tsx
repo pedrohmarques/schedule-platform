@@ -4,12 +4,13 @@ import Input from "@/components/ui/Input"
 import MaskedInput from "@/components/ui/MaskedInput";
 import Select from "@/components/ui/Select";
 import MyButton from "@/components/ui/MyButton";
-import { createClient } from "@/services/create.service";
 import { useCepLookup } from "@/hooks/useCepLookup";
 import { BRAZILIAN_STATES } from "@/constants/states";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
+import { createUser } from "@/services/create.service";
+import { Role } from "@/types/User";
 
 export default function ClientForm() {
     const router = useRouter()
@@ -17,8 +18,8 @@ export default function ClientForm() {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [cpf, setCpf] = useState('');
-    const [age, setAge] = useState('');
     const [zipCode, setZipCode] = useState('');
+    const [birthDate, setBirthDate] = useState('')
     const [phone, setPhone] = useState('');
     const [street, setStreet] = useState('');
     const [number, setNumber] = useState('');
@@ -44,22 +45,24 @@ export default function ClientForm() {
     async function handleSubmit(e: React.FormEvent) {
         e.preventDefault();
         try {
+            const role: Role = 'client'
             const data = {
                 name,
                 email,
                 password,
                 cpf,
-                age: Number(age),
                 phone,
+                birthDate,
                 zipCode,
                 street,
                 number,
                 complement,
                 neighborhood,
                 city,
-                state
+                state,
+                role
             }
-            const res = await createClient(data);
+            await createUser(data);
             toast.success("Conta criada com sucesso.")
             router.push("/")
         } catch {
@@ -81,7 +84,7 @@ export default function ClientForm() {
                     <MaskedInput label="Telefone" name="phone" variant="phone" value={phone} onChange={(e) => setPhone(e.target.value)} />
                     <CpfInput label="CPF" name="cpf" value={cpf} onChange={(e) => setCpf(e.target.value)} />
                 </div>
-                <Input label="Idade" name="age" type="number" placeholder="30" value={age} onChange={(e) => setAge(e.target.value)} />
+                {/* <Input label="Idade" name="age" type="number" placeholder="30" value={age} onChange={(e) => setAge(e.target.value)} /> */}
 
                 <div className="grid gap-4 sm:grid-cols-2">
                     <MaskedInput label="CEP" name="cep" variant="cep" value={zipCode} onChange={(e) => setZipCode(e.target.value)} />

@@ -1,29 +1,22 @@
 import { api } from '@/lib/api';
-import { Client } from '@/types/Client';
-import { Professional } from '@/types/Professional';
+import type { Role, SessionUser } from '@/types/User';
 
 interface LoginResponse {
   access_token: string;
-  profile: Client | Professional
+  profile: SessionUser;
 }
 
-export function loginClient(email: string, password: string) {
-  return api<LoginResponse>('/auth/login/user', {
-    method: 'POST',
-    body: JSON.stringify({ email, password }),
-  });
-}
-
-export function loginProf(email: string, password: string) {
-  return api<LoginResponse>('/auth/login/prof', {
-    method: 'POST',
-    body: JSON.stringify({ email, password }),
-  });
-}
-
-export function postResetPassword(email: string, password: string, role: 'client' | 'professional') {
-  return api<LoginResponse>('/auth/reset', {
+// loginClient e loginProf viram um só: o papel é um campo do body.
+export function login(email: string, password: string, role: Role) {
+  return api<LoginResponse>('/auth/login', {
     method: 'POST',
     body: JSON.stringify({ email, password, role }),
+  });
+}
+
+export function postResetPassword(email: string, password: string) {
+  return api<{ ok: true }>('/auth/reset', {
+    method: 'POST',
+    body: JSON.stringify({ email, password }),
   });
 }

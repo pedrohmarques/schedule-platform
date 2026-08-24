@@ -2,12 +2,13 @@
 
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { loginClient, loginProf, postResetPassword } from '@/services/auth.services';
 import MyButton from '@/components/ui/MyButton';
 import Input from '@/components/ui/Input';
 import { toast } from 'sonner';
 import Link from 'next/link';
 import { User, Briefcase, CalendarClock } from 'lucide-react';
+import { login, postResetPassword } from '@/services/auth.services';
+import { ApiError } from '@/lib/api';
 
 type Role = 'client' | 'professional';
 
@@ -26,10 +27,9 @@ export default function LoginPage() {
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     try {
-      const login = role === 'client' ? loginClient : loginProf;
-      const { access_token, profile } = await login(email, password);
-      document.cookie = `token=${access_token}; path=/`;
-      sessionStorage.setItem("user", JSON.stringify(profile))
+      const { access_token, profile } = await login(email, password, role);
+      document.cookie = `token=${access_token}; path=/; SameSite=Lax`;
+      sessionStorage.setItem('user', JSON.stringify(profile));
       toast.success('Login realizado com sucesso!');
       router.push(`/dashboard/${role}`);
     } catch {
@@ -37,16 +37,19 @@ export default function LoginPage() {
     }
   }
 
-  async function handleResetSubmit(e: React.FormEvent){
+  async function handleResetSubmit(e: React.FormEvent) {
     e.preventDefault();
     try {
-      await postResetPassword(email, password, role)
-      toast.success('Senha resetada com sucesso.')
-      setResetPassword(false)
-    } catch(e: any){
-      toast.error(e?.message ?? 'Não foi possível resetar a senha.')
+      await postResetPassword(email, password); // sem role agora
+      toast.success('Senha resetada com sucesso.');
+      setResetPassword(false);
+    } catch (e) {
+      toast.error(
+        e instanceof ApiError ? e.message : 'Não foi possível resetar a senha.',
+      );
     }
   }
+  
 
   useEffect(() => {
     setEmail('')

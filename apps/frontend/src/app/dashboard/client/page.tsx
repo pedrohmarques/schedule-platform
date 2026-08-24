@@ -59,7 +59,7 @@ export default function DashboardClient() {
                 setJobs(jobs)
             }
         } catch {
-
+            toast.error("Não foi possivel encontrar nenhum trabalho.")
         }
     }
 

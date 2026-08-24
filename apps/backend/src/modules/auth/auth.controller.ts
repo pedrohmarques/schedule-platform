@@ -1,35 +1,24 @@
-import { Controller, Post, Body, HttpCode, HttpStatus } from '@nestjs/common';
-import { LoginDto } from './dto/login.dto';
+import { Body, Controller, HttpCode, HttpStatus, Post } from '@nestjs/common';
 import { AuthService } from './auth.service';
-import { Public } from 'src/common/decorators/public.decorator';
-import { ClientEntity } from '../client/entities/client.entity';
-import { ProfissionalEntity } from '../profissional/entities/profissional.entity';
-import { ResetPasswordDto } from './dto/reset-password';
+import { LoginDto } from './dto/login.dto';
+import { ResetPasswordDto } from './dto/reset-password.dto';
+import { Public } from '../../common/decorators/public.decorator';
 
 @Controller('auth')
 export class AuthController {
   constructor(private readonly authService: AuthService) {}
 
-  @Post('login/user')
+  @Post('login')
   @HttpCode(HttpStatus.OK)
   @Public()
-  async userLogin(@Body() dto: LoginDto) {
-    const user = await this.authService.login(dto.email, dto.password, "client");
-    return { ...user, profile: new ClientEntity(user.profile) };
-  }
-
-  @Post('login/prof')
-  @HttpCode(HttpStatus.OK)
-  @Public()
-  async proflogin(@Body() dto: LoginDto) {
-    const user = await this.authService.login(dto.email, dto.password, "profissional");
-    return { ...user, profile: new ProfissionalEntity(user.profile) };
+  login(@Body() dto: LoginDto) {
+    return this.authService.login(dto.email, dto.password, dto.role);
   }
 
   @Post('reset')
+  @HttpCode(HttpStatus.OK)
   @Public()
-  async resetPassword(@Body() dto: ResetPasswordDto) {
-    const user = await this.authService.resetPassword(dto.email, dto.password, dto.role);
-    return dto.role === 'client' ? new ClientEntity(user) : new ProfissionalEntity(user)
+  resetPassword(@Body() dto: ResetPasswordDto) {
+    return this.authService.resetPassword(dto.email, dto.password);
   }
 }

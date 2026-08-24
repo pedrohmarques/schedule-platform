@@ -3,7 +3,6 @@ import CpfInput from "@/components/ui/CpfInput";
 import Input from "@/components/ui/Input"
 import MaskedInput from "@/components/ui/MaskedInput";
 import MyButton from "@/components/ui/MyButton";
-import { createProf } from "@/services/create.service";
 import { useCepLookup } from "@/hooks/useCepLookup";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
@@ -12,6 +11,8 @@ import Select from "@/components/ui/Select";
 import { BRAZILIAN_STATES } from "@/constants/states";
 import { SERVICE_AREAS } from "@/constants/areas";
 import Textarea from "@/components/ui/Textarea";
+import { Role } from "@/types/User";
+import { createUser } from "@/services/create.service";
 
 export default function ProfissionalForm() {
     const router = useRouter()
@@ -21,7 +22,7 @@ export default function ProfissionalForm() {
     const [cpf, setCpf] = useState('');
     const [area, setArea] = useState('');
     const [description, setDescription] = useState('');
-    const [age, setAge] = useState('');
+    const [birthDate, setBirthDate] = useState('');
     const [zipCode, setZipCode] = useState('');
     const [phone, setPhone] = useState('');
     const [street, setStreet] = useState('');
@@ -48,14 +49,14 @@ export default function ProfissionalForm() {
     async function handleSubmit(e: React.FormEvent) {
         e.preventDefault();
         try {
+            const role: Role = 'professional'
             const data = {
                 name,
                 email,
                 password,
                 cpf,
-                area,
+                birthDate,
                 description,
-                age: Number(age),
                 phone,
                 zipCode,
                 street,
@@ -63,9 +64,10 @@ export default function ProfissionalForm() {
                 complement,
                 neighborhood,
                 city,
-                state
+                state,
+                role
             }
-            const res = await createProf(data);
+            const res = await createUser(data);
             console.log(res)
             toast.success("Conta criada com sucesso.")
             router.push("/")
@@ -88,7 +90,7 @@ export default function ProfissionalForm() {
                     <MaskedInput label="Telefone" name="phone" variant="phone" value={phone} onChange={(e) => setPhone(e.target.value)} />
                     <CpfInput label="CPF" name="cpf" value={cpf} onChange={(e) => setCpf(e.target.value)} />
                 </div>
-                <Input label="Idade" name="age" type="number" placeholder="30" value={age} onChange={(e) => setAge(e.target.value)} />
+                {/* <Input label="Idade" name="age" type="number" placeholder="30" value={age} onChange={(e) => setAge(e.target.value)} /> */}
 
                 <div className="grid gap-4 sm:grid-cols-2">
                     <MaskedInput label="CEP" name="cep" variant="cep" value={zipCode} onChange={(e) => setZipCode(e.target.value)} />

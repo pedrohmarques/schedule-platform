@@ -8,11 +8,12 @@ import { HttpExceptionFilter } from './common/filters/http-exception.filter';
 import { LoggingInterceptor } from './common/interceptors/logging.interceptor';
 import { PrismaModule } from './prisma/prisma.module';
 import { HealthModule } from './modules/health/health.module';
-import { ClientModule } from './modules/client/client.module';
 import { AuthModule } from './modules/auth/auth.module';
 import { JwtAuthGuard } from './common/guards/jwt-auth.guard';
-import { ProfissionalModule } from './modules/profissional/profissional.module';
+import { RolesGuard } from './common/guards/roles.guard';
 import { JobModule } from './modules/job/job.module';
+import { UserModule } from './modules/user/user.module';
+import { ProfessionalModule } from './modules/professional/professional.module';
 
 @Module({
   imports: [
@@ -25,8 +26,8 @@ import { JobModule } from './modules/job/job.module';
     PrismaModule,
     HealthModule,
     AuthModule,
-    ClientModule,
-    ProfissionalModule,
+    UserModule,
+    ProfessionalModule,
     JobModule
   ],
   providers: [
@@ -41,7 +42,10 @@ import { JobModule } from './modules/job/job.module';
     },
     { provide: APP_FILTER, useClass: HttpExceptionFilter },
     { provide: APP_INTERCEPTOR, useClass: LoggingInterceptor },
+    // A ordem importa: o JwtAuthGuard precisa popular request.user antes
+    // do RolesGuard tentar ler o papel.
     { provide: APP_GUARD, useClass: JwtAuthGuard },
+    { provide: APP_GUARD, useClass: RolesGuard },
     {
       provide: APP_INTERCEPTOR,
       useClass: ClassSerializerInterceptor,

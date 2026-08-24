@@ -1,7 +1,6 @@
-// src/modules/client/entities/client.entity.ts
 import { Exclude } from 'class-transformer';
 
-export class ProfissionalEntity {
+export class UserEntity {
   id!: string;
   name!: string;
   email!: string;
@@ -10,10 +9,8 @@ export class ProfissionalEntity {
   password!: string;
 
   phone!: string;
-  age!: number;
+  birthDate!: Date;
   cpf!: string;
-  area!: string;
-  description!: string | null;
   zipCode!: string;
   street!: string;
   number!: string;
@@ -24,7 +21,7 @@ export class ProfissionalEntity {
   createdAt!: Date;
   updatedAt!: Date;
 
-  constructor(partial: Partial<ProfissionalEntity>) {
+  constructor(partial: Partial<UserEntity>) {
     Object.assign(this, partial);
   }
 }

@@ -7,8 +7,25 @@ import {
 import { PrismaService } from "src/prisma/prisma.service";
 import { CreateJobDto } from "./dto/create-job.dto";
 import { RequestAction } from "./dto/respond-job-request.dto";
-import { JobStatus, RequestOrigin, RequestStatus } from "@prisma/client";
+import { JobStatus, Prisma, RequestOrigin, RequestStatus, ServiceArea } from "@prisma/client";
 import { RequestJobDto } from "./dto/request-job.dto";
+import type { CurrentUserPayload } from "src/common/decorators/current-user.decorator";
+
+/**
+ * ClientProfile e ProfessionalProfile guardam só o vínculo com User — nome,
+ * telefone e endereço moram em User. Esses selects trazem o mínimo de cada
+ * lado; o achatamento acontece em toClient/toProfessional, logo abaixo.
+ */
+const clientSelect = {
+    id: true,
+    user: { select: { name: true } },
+} satisfies Prisma.ClientProfileSelect;
+
+const professionalSelect = {
+    id: true,
+    area: true,
+    user: { select: { name: true } },
+} satisfies Prisma.ProfessionalProfileSelect;
 
 @Injectable()
 export class JobService {
@@ -23,38 +40,61 @@ export class JobService {
         return { ...job, price: Number(job.price) };
     }
 
-    async findJobByArea(professionalId: string, statuses?: string[]) {
+    /**
+     * Achata ClientProfile + User em { id, name }, que é o formato que o
+     * frontend já consome (types/Job.ts). Manter esse formato é o que evita
+     * ter que mexer nas telas de dashboard.
+     */
+    private toClient(client: { id: string; user: { name: string } }) {
+        return { id: client.id, name: client.user.name };
+    }
+
+    private toProfessional(professional: {
+        id: string;
+        area: ServiceArea;
+        user: { name: string };
+    }) {
+        return {
+            id: professional.id,
+            area: professional.area,
+            name: professional.user.name,
+        };
+    }
+
+    async findJobByArea(professionalProfileId: string, areas?: ServiceArea[]) {
         const jobs = await this.prisma.job.findMany({
             where: {
-                requests: { none: {professionalId} },
+                requests: { none: { professionalId: professionalProfileId } },
                 status: "OPEN",
-                ...(statuses && statuses.length > 0 ? { area: { in: statuses } } : {}),
+                ...(areas && areas.length > 0 ? { area: { in: areas } } : {}),
             },
             orderBy: { createdAt: "desc" },
             include: {
                 requests: true,
-                client: { select: {id: true, name: true} }
-            }
+                client: { select: clientSelect },
+            },
         });
 
         return jobs.map((job) => ({
             ...this.toPlainJob(job),
+            client: this.toClient(job.client),
             requests: job.requests.map((request) => this.toPlainJob(request)),
         }));
     }
 
-    async create(dto: CreateJobDto, clientId: string) {
+    async create(dto: CreateJobDto, clientProfileId: string) {
         const { professionalId, ...jobData } = dto;
 
         const job = await this.prisma.job.create({
             data: {
                 ...jobData,
-                clientId,
+                clientId: clientProfileId,
                 status: professionalId ? "PENDING" : "OPEN",
                 requests: professionalId
                     ? {
                           create: [
                               {
+                                  // ProfessionalProfile.id, não User.id
                                   professionalId,
                                   price: jobData.price,
                                   description: jobData.description,
@@ -71,44 +111,46 @@ export class JobService {
     }
 
     async findAllRequestsByProfessional(
-        professionalId: string,
+        professionalProfileId: string,
         statuses?: RequestStatus[],
         origins?: RequestOrigin[],
     ) {
         const requests = await this.prisma.jobRequest.findMany({
             where: {
-                professionalId,
+                professionalId: professionalProfileId,
                 ...(statuses && statuses.length > 0 ? { status: { in: statuses } } : {}),
                 ...(origins && origins.length > 0 ? { origin: { in: origins } } : {}),
             },
             orderBy: { createdAt: "desc" },
-            include: { job:  {
-                    include: { client: { select: {id: true, name: true} }}
-                } 
+            include: {
+                job: {
+                    include: { client: { select: clientSelect } },
+                },
             },
         });
 
         return requests.map((request) => ({
             ...this.toPlainJob(request),
-            job: this.toPlainJob(request.job),
+            job: {
+                ...this.toPlainJob(request.job),
+                client: this.toClient(request.job.client),
+            },
         }));
     }
 
-    async findAllByClient(clientId: string, statuses?: JobStatus[]) {
+    async findAllByClient(clientProfileId: string, statuses?: JobStatus[]) {
         const jobs = await this.prisma.job.findMany({
             where: {
-                clientId,
+                clientId: clientProfileId,
                 ...(statuses && statuses.length > 0 ? { status: { in: statuses } } : {}),
             },
             orderBy: { createdAt: "desc" },
             include: {
-                // join de 2 níveis: Job -> requests (JobRequest) -> professional (Profissional)
+                // join de 2 níveis: Job -> requests (JobRequest) -> professional
                 requests: {
                     include: {
-                        // select, não "professional: true" -> senão viria o hash da senha junto
-                        professional: {
-                            select: { id: true, name: true, area: true },
-                        },
+                        // select, não "professional: true" -> senão viria o perfil inteiro
+                        professional: { select: professionalSelect },
                     },
                 },
             },
@@ -116,12 +158,15 @@ export class JobService {
 
         return jobs.map((job) => ({
             ...this.toPlainJob(job),
-            requests: job.requests.map((request) => this.toPlainJob(request)),
+            requests: job.requests.map((request) => ({
+                ...this.toPlainJob(request),
+                professional: this.toProfessional(request.professional),
+            })),
         }));
     }
 
     /** Um profissional solicitando um job em aberto (que não tem alvo definido). */
-    async requestJob(jobId: string, dto: RequestJobDto, professionalId: string) {
+    async requestJob(jobId: string, dto: RequestJobDto, professionalProfileId: string) {
         const job = await this.prisma.job.findUnique({ where: { id: jobId } });
 
         if (!job) {
@@ -135,7 +180,7 @@ export class JobService {
         const request = await this.prisma.jobRequest.create({
             data: {
                 jobId,
-                professionalId,
+                professionalId: professionalProfileId,
                 price: dto?.price || job.price,
                 description: dto.description,
                 origin: "PROFESSIONAL_APPLICATION",
@@ -151,14 +196,18 @@ export class JobService {
      * responder. Recusar reabre o job (status volta pra OPEN) pra qualquer
      * outro profissional poder solicitar.
      */
-    async respondAsProfessional(requestId: string, professionalId: string, action: RequestAction) {
+    async respondAsProfessional(
+        requestId: string,
+        professionalProfileId: string,
+        action: RequestAction,
+    ) {
         const jobRequest = await this.prisma.jobRequest.findUnique({ where: { id: requestId } });
 
         if (!jobRequest) {
             throw new NotFoundException(`Solicitação ${requestId} não encontrada`);
         }
 
-        if (jobRequest.professionalId !== professionalId) {
+        if (jobRequest.professionalId !== professionalProfileId) {
             throw new ForbiddenException("Essa solicitação não é sua.");
         }
 
@@ -188,7 +237,7 @@ export class JobService {
      * responder. Ao aceitar, as outras candidaturas pendentes desse job são
      * automaticamente recusadas.
      */
-    async respondAsClient(requestId: string, clientId: string, action: RequestAction) {
+    async respondAsClient(requestId: string, clientProfileId: string, action: RequestAction) {
         const jobRequest = await this.prisma.jobRequest.findUnique({
             where: { id: requestId },
             include: { job: true },
@@ -198,7 +247,7 @@ export class JobService {
             throw new NotFoundException(`Solicitação ${requestId} não encontrada`);
         }
 
-        if (jobRequest.job.clientId !== clientId) {
+        if (jobRequest.job.clientId !== clientProfileId) {
             throw new ForbiddenException("Esse job não é seu.");
         }
 
@@ -207,10 +256,12 @@ export class JobService {
         }
 
         if (action === RequestAction.REJECT) {
-            return this.prisma.jobRequest.update({
+            const rejected = await this.prisma.jobRequest.update({
                 where: { id: requestId },
                 data: { status: "REJECTED" },
             });
+
+            return this.toPlainJob(rejected);
         }
 
         const [, , job] = await this.prisma.$transaction([
@@ -232,7 +283,7 @@ export class JobService {
     }
 
     /** Cliente ou o profissional confirmado marcam o job como concluído. */
-    async completeJob(jobId: string, userId: string) {
+    async completeJob(jobId: string, user: CurrentUserPayload) {
         const job = await this.prisma.job.findUnique({
             where: { id: jobId },
             include: { requests: true },
@@ -247,8 +298,18 @@ export class JobService {
         }
 
         const acceptedRequest = job.requests.find((r) => r.status === "ACCEPTED");
-        const isClient = job.clientId === userId;
-        const isAssignedProfessional = acceptedRequest?.professionalId === userId;
+
+        // Job ACCEPTED sem request aceito é estado inconsistente: 400, não 500.
+        if (!acceptedRequest) {
+            throw new BadRequestException(
+                "Esse job está aceito mas não tem profissional confirmado.",
+            );
+        }
+
+        const isClient = user.role === "client" && job.clientId === user.profileId;
+        const isAssignedProfessional =
+            user.role === "professional" &&
+            acceptedRequest.professionalId === user.profileId;
 
         if (!isClient && !isAssignedProfessional) {
             throw new ForbiddenException("Você não faz parte desse job.");
@@ -256,7 +317,7 @@ export class JobService {
 
         const [, updated] = await this.prisma.$transaction([
             this.prisma.jobRequest.update({
-                where: { id: acceptedRequest!.id },
+                where: { id: acceptedRequest.id },
                 data: { status: "COMPLETED" },
             }),
             this.prisma.job.update({

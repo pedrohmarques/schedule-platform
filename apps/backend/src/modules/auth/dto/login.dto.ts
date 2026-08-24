@@ -1,5 +1,5 @@
-// src/modules/auth/dto/login.dto.ts
-import { IsEmail, IsString } from 'class-validator';
+import { IsEmail, IsIn, IsString } from 'class-validator';
+import type { Role } from '../jwt-payload.interface';
 
 export class LoginDto {
   @IsEmail()
@@ -7,4 +7,7 @@ export class LoginDto {
 
   @IsString()
   password!: string;
+
+  @IsIn(['client', 'professional'])
+  role!: Role;
 }

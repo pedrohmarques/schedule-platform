@@ -1,8 +1,9 @@
-import { IsNumber, IsOptional, IsPositive, IsString } from "class-validator";
+import { IsEnum, IsNumber, IsOptional, IsPositive, IsString } from "class-validator";
+import { ServiceArea } from "@prisma/client";
 
 export class CreateJobDto {
-    @IsString()
-    area!: string;
+    @IsEnum(ServiceArea)
+    area!: ServiceArea;
 
     @IsString()
     title!: string;
