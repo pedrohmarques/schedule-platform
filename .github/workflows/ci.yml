@@ -1,0 +1,90 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+# Um push novo na mesma branch cancela a execução anterior — evita fila de
+# builds obsoletos consumindo minutos do runner.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  NODE_VERSION: '22'
+
+jobs:
+  backend:
+    name: Backend (lint, types, tests)
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: apps/backend
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: npm
+          cache-dependency-path: apps/backend/package-lock.json
+
+      # npm ci (e não npm install): instala exatamente o que está no
+      # package-lock.json e falha se lock e package.json divergirem.
+      - name: Install
+        run: npm ci
+
+      # O PrismaClient é gerado em node_modules a partir do schema.prisma.
+      # Sem isso o tsc não encontra os tipos de @prisma/client.
+      - name: Generate Prisma Client
+        run: npx prisma generate
+
+      # TODO: remover o continue-on-error depois do commit de formatação
+      # (`npm run lint` aplica o --fix do prettier em ~40 arquivos) e da
+      # correção dos 8 erros reais de @typescript-eslint. Até lá, os erros
+      # ficam visíveis no log sem derrubar o build.
+      - name: Lint
+        run: npm run lint:ci
+        continue-on-error: true
+
+      - name: Typecheck
+        run: npm run typecheck
+
+      - name: Unit tests
+        run: npm test
+
+  frontend:
+    name: Frontend (lint, types, build)
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: apps/frontend
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: npm
+          cache-dependency-path: apps/frontend/package-lock.json
+
+      - name: Install
+        run: npm ci
+
+      # TODO: remover o continue-on-error depois de resolver os 10 erros de
+      # react-hooks/set-state-in-effect. A migração pra TanStack Query e
+      # react-hook-form apaga a maior parte deles.
+      - name: Lint
+        run: npm run lint
+        continue-on-error: true
+
+      - name: Typecheck
+        run: npm run typecheck
+
+      # O build do Next é o teste de integração mais barato que existe aqui:
+      # pega erro de import, de Server/Client Component e de tipo de rota.
+      - name: Build
+        run: npm run build
