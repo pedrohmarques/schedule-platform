@@ -4,8 +4,10 @@ import {
   IsNotEmpty,
   IsNumber,
   IsString,
+  Matches,
   Max,
   Min,
+  MinLength,
   validateSync,
 } from 'class-validator';
 
@@ -36,6 +38,18 @@ class EnvironmentVariables {
   @IsString()
   @IsNotEmpty()
   DATABASE_URL: string;
+
+  @IsString()
+  @MinLength(32, {
+    message: 'JWT_SECRET precisa de pelo menos 32 caracteres',
+  })
+  JWT_SECRET: string;
+
+  @IsString()
+  @Matches(/^\d+[smhd]$/, {
+    message: 'JWT_EXPIRES_IN deve ser algo como 3600s, 30m, 12h ou 1d',
+  })
+  JWT_EXPIRES_IN: string;
 }
 
 /**

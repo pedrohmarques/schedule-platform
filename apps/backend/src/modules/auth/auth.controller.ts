@@ -15,10 +15,10 @@ export class AuthController {
     return this.authService.login(dto.email, dto.password, dto.role);
   }
 
-  @Post('reset')
-  @HttpCode(HttpStatus.OK)
-  @Public()
-  resetPassword(@Body() dto: ResetPasswordDto) {
-    return this.authService.resetPassword(dto.email, dto.password);
-  }
+  // @Post('reset')
+  // @HttpCode(HttpStatus.OK)
+  // @Public()
+  // resetPassword(@Body() dto: ResetPasswordDto) {
+  //   return this.authService.resetPassword(dto.email, dto.password);
+  // }
 }

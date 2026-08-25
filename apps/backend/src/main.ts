@@ -15,6 +15,7 @@ async function bootstrap() {
   app.use(helmet());
   app.enableCors({ origin: corsOrigin, credentials: true });
   app.setGlobalPrefix(apiPrefix);
+  app.enableShutdownHooks();
 
   if (nodeEnv !== 'production') {
     const swaggerConfig = new DocumentBuilder()
@@ -27,7 +28,7 @@ async function bootstrap() {
     SwaggerModule.setup(`${apiPrefix}/docs`, app, document);
   }
 
-  await app.listen(port);
+  await app.listen(port, '0.0.0.0');
 
   Logger.log(
     `🚀 Aplicação rodando em: http://localhost:${port}/${apiPrefix}`,
