@@ -28,7 +28,6 @@ export default function ModalApplie({ open, job, onOpenChange, onSubmit }: Modal
     async function handleSubmit() {
       try {
         const applieResponse = await applieJob(job.id, form);
-        console.log(applieResponse)
         toast.success(`Pedido criado com sucesso.`)
         onSubmit()
       } catch {

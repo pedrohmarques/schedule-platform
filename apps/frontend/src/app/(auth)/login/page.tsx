@@ -105,14 +105,14 @@ export default function LoginPage() {
         )}
 
         <div className="mt-6 flex flex-col gap-2">
-          {!resetPassword && (
+          {/* {!resetPassword && (
             <span className="text-sm text-[var(--muted-foreground)]">
               Esqueceu a senha? 
               <span onClick={() => setResetPassword(true)} className="font-medium text-[var(--primary)] underline-offset-4 hover:underline ml-2 cursor-pointer">
                 Resetar senha
               </span>
             </span>
-          )}
+          )} */}
 
           {resetPassword && (
             <span className="text-sm text-[var(--muted-foreground)]">
